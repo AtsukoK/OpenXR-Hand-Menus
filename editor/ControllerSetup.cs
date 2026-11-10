@@ -13,7 +13,7 @@ public partial class MainForm
         ("touch", "Meta Quest / Rift, Pico (Touch-style controllers)",
                   "Double-tap the thumbrest (just touch it, no press) to open that hand's wheel."),
         ("index", "Valve Index, Pimax Crystal, Bigscreen (Index-style)",
-                  "Double-tap the B button by touch only (rest your thumb on it twice, don't press) to open that hand's wheel."),
+                  "Double-click the thumbstick (press it in twice quickly) to open that hand's wheel."),
         ("wmr",   "Windows Mixed Reality / HP Reverb",
                   "Hold the menu button to open that hand's wheel, point the stick, let go to pick. A quick tap still reaches the game."),
         ("vive",  "HTC Vive / Vive Pro wands",
@@ -80,8 +80,8 @@ public partial class MainForm
                     b.Input = hand + ".thumbrest"; b.Gesture = "double_tap"; b.DoubleTapMs = 400; b.Block = "none"; b.TapPassthrough = false; b.Action.Confirm = "stick_return";
                     b.Name = side + " hand wheel"; break;
                 case "index":
-                    b.Input = hand + ".secondary.touch"; b.Gesture = "double_tap"; b.DoubleTapMs = 400; b.Block = "none"; b.TapPassthrough = false; b.Action.Confirm = "stick_return";
-                    b.Name = side + " hand wheel (double-touch B)"; break;
+                    b.Input = hand + ".thumbstick"; b.Gesture = "double_tap"; b.DoubleTapMs = 400; b.Block = "none"; b.TapPassthrough = false; b.Action.Confirm = "stick_return";
+                    b.Name = side + " hand wheel (double-click stick)"; break;
                 default: // wmr, vive
                     b.Input = hand + ".menu"; b.Gesture = "hold"; b.HoldMs = 500; b.Block = "trigger"; b.TapPassthrough = true; b.Action.Confirm = "release";
                     b.Name = side + " hand wheel (hold menu)"; break;
