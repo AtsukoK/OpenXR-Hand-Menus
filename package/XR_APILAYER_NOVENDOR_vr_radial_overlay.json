@@ -1,0 +1,11 @@
+{
+    "file_format_version": "1.0.0",
+    "api_layer": {
+        "name": "XR_APILAYER_NOVENDOR_vr_radial_overlay",
+        "library_path": "./VRRadialOverlay.dll",
+        "api_version": "1.0",
+        "implementation_version": "1",
+        "description": "VR Radial Overlay: configurable radial menu, chords and layers for any OpenXR game",
+        "disable_environment": "DISABLE_XR_APILAYER_NOVENDOR_vr_radial_overlay"
+    }
+}

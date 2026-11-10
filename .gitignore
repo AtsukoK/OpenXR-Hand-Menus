@@ -1,0 +1,9 @@
+layer/build/
+editor/bin/
+editor/obj/
+dist/
+release/
+/*.png
+*.bak
+.vs/
+SESSION_NOTES.md
