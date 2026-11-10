@@ -5,7 +5,7 @@
 
 const std::vector<KbKey>& KbLayout(float& W, float& Hh) {
     static std::vector<KbKey> keys;
-    W = 15.f; Hh = 5.f;
+    W = 15.f; Hh = 6.f;
     if (!keys.empty()) return keys;
     float x = 0, y = 0;
     auto add = [&](std::string label, std::string shiftLabel, std::string combo, float w, int kind = KB_KEY, bool letter = false, bool repeat = false) {
@@ -14,6 +14,8 @@ const std::vector<KbKey>& KbLayout(float& W, float& Hh) {
         x += w;
     };
     auto row = [&] { x = 0; y += 1; };
+    for (int i = 1; i <= 12; i++) add("F" + std::to_string(i), "", "F" + std::to_string(i), 1.25f); // function keys
+    row();
     add("Esc", "", "Esc", 1);
     const std::string digits = "1234567890", shifted = "!@#$%^&*()";
     for (int i = 0; i < 10; i++) add(std::string(1, digits[i]), std::string(1, shifted[i]), std::string(1, digits[i]), 1);

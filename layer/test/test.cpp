@@ -117,6 +117,10 @@ int main(int argc, char** argv) {
             f.h[hand].aimPose.position = X(from);
             f.h[hand].aimPose.orientation = BillboardTo(target, from);
         };
+        {
+            int fk = 0; for (auto& k : keys) if (k.combo.size() >= 2 && k.combo[0] == 'F' && isdigit((unsigned char)k.combo[1])) fk++;
+            CHECK(fk == 12 && keys[0].combo == "F1" && keys[11].combo == "F12", "keyboard has an F1-F12 row on top");
+        }
         int shiftKey = -1, qKey = -1, closeKey = -1;
         for (int i = 0; i < (int)keys.size(); i++) {
             if (keys[i].kind == KB_SHIFT && shiftKey < 0) shiftKey = i;
