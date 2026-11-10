@@ -22,9 +22,31 @@ Radial wheels, wrist panels, button combos and a VR keyboard for any OpenXR game
 
 ## Install
 
-1. Run `dist\OpenXRHandMenusEditor.exe` and click **Install layer**. This needs admin, because OpenXR layers are registered under HKLM.
-2. Start any OpenXR game. A toast at the bottom of your view, "Hand menus: default.json loaded", means the layer is running.
-3. Edit profiles in the editor and save. A running game reloads them within a second.
+1. Download `OpenXRHandMenus-vX.Y.Z.zip` from the [latest release](https://github.com/AtsukoK/OpenXR-Hand-Menus/releases/latest) and **extract the whole zip** to a folder it can stay in. The game loads the layer from there.
+2. Run `OpenXRHandMenusEditor.exe`. The first time, it asks which controllers you use, so it can pick the buttons that open the wheels, and offers a two-minute tour.
+3. Click **Install layer** in the toolbar (needs admin, because OpenXR layers are registered under HKLM). The toolbar then shows "Layer: installed".
+4. Start any OpenXR game. A message at the bottom of your view, "Hand menus: default.json loaded", means the layer is running.
+5. Change things in the editor and save (Ctrl+S). A running game reloads the profile within a second.
+
+## Using the editor
+
+The editor opens on the **Overview**: one card per feature, with a switch to turn it on or off and a blue button that jumps to its settings. The list on the left holds everything in the profile, grouped by controller, wheels and wrist panels.
+
+![Editor overview: a list of bindings, wheels and wrist panels on the left, cards with on/off switches on the right](docs/images/editor-overview.png)
+
+**Bindings** decide what a controller button does. Pick the hand and button, how it's used (press, hold, double tap...), and what happens. You can open a wheel, press a key (**Record key** captures it from your keyboard), run a macro, open the VR keyboard, and more. "+ add another button" makes a combo.
+
+![Binding page: button, gesture, layer conditions and the action](docs/images/editor-binding.png)
+
+**Wheels** show a live picture. Click a segment to edit that item, use "+ Add item" or "+ Add sub-wheel" under a wheel in the list, and drag items to reorder them.
+
+![Wheel page with a clickable picture of the right-hand wheel](docs/images/editor-wheel.png)
+
+**Wrist panels** can be off, have their own pages, or mirror the other arm. Set the side of the arm, the text direction and the size here, or move them by hand in the headset with **Adjust positions**.
+
+![Wrist panel page: off / own pages / mirror, first page, side of the arm and text direction](docs/images/editor-wrist-panel.png)
+
+## Files and switching it off
 
 Turn it off for one game with `enabled: false` in that game's profile. Remove it entirely with **Uninstall layer**. Setting the environment variable `DISABLE_XR_APILAYER_NOVENDOR_openxr_hand_menus=1` also disables it.
 
@@ -72,16 +94,13 @@ Files live in `%LOCALAPPDATA%\OpenXRHandMenus\`:
 - `button`: the confirm button (`selection.confirm_button`) picks the item.
 - In every mode the confirm button also works, and the cancel button (`selection.cancel_button`, default B/Y) goes back or closes.
 
-**Placement** (`style.anchor`): `hand_locked` (default; appears above the opening hand and stays put), `hand` (follows the hand), `head_locked`, or `head`. The wheel always turns to face you. With `selection.method: point` you aim the controller at an item instead, and `both` allows either.
+**Placement** (`style.anchor`): `head_locked` (default; appears in front of you, 0.70 m away, and stays put), `head` (follows your view), `hand_locked` (appears above the opening hand and stays put), or `hand` (follows the hand). The wheel always turns to face you. `selection.method` is `both` by default (stick or pointer); `thumbstick` or `point` allow only one.
 
 ## Limits
 - OpenXR games only. Games that use the SteamVR (OpenVR) API or the Oculus LibOVR API never load OpenXR layers.
 - The wheel is drawn for D3D11 and D3D12 games. Vulkan or OpenGL games still get the bindings, chords and layers, but no visible wheel.
 - Keys go to the foreground window. If a game ignores them, try `focus_game_window: true`.
 - Multiplayer games with anti-cheat may object to any injected layer.
-
-## Building
-`build_all.ps1` builds the layer (CMake + MSVC) and the editor (.NET 10) into `dist\`. `layer\build\vro_test.exe` runs the offline engine tests and writes wheel PNGs.
 
 ## Building
 
@@ -91,7 +110,7 @@ Needs Visual Studio Build Tools (C++ with CMake) and the .NET 10 SDK.
 - Editor: `dotnet publish editor/OpenXRHandMenusEditor.csproj -c Release -o editor/bin/publish`
 - `build_all.ps1` does both and fills `dist\` (it uses the author's local tool paths in `layer\build.bat`).
 
-The GitHub Actions workflow builds the same tester package on every push.
+`layeruildro_test.exe` runs the offline engine tests. The GitHub Actions workflow builds the same tester package on every push.
 
 ## Licence
 
