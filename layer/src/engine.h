@@ -122,6 +122,7 @@ private:
     double now = 0, lastNow = 0;
     struct GrabRun { int target = -1; int hand = -1; Vec3 off; }; // target: 0/1 wrist panel, 2 wheel
     GrabRun grab;
+    double adjustClosedAt = -1;
     void UpdateAdjustWheel();
 
     bool Down(const InputId& i) const { return cur[i.hand][i.comp][i.feat]; }

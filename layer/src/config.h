@@ -91,10 +91,12 @@ struct WristStyle {
     float size = 0.11f;             // panel width and height in metres
     float towardElbow = 0.13f;      // from the controller grip back along the forearm
     std::string textUp = "fingers"; // fingers = top of the text toward the fingers (hand held up, palm to face)
+                                    // custom = rotate_deg from along_arm (set by turning it in adjust mode)
                                     // between = halfway (45 degrees) between fingers and along_arm (arm half raised)
                                     // along_arm = text runs along the forearm (arm held across the body)
     float lift = 0.025f;            // off the skin
     float side = 0.f;               // sideways across the forearm (set by adjust mode)
+    float rotateDeg = 0.f;          // text_up = custom: turn of the text from along_arm, degrees
     int columns = 3;
     float facingDeg = 35.f;         // how squarely the panel must face the eyes
     float gazeDeg = 20.f;           // how close to the centre of view it must be

@@ -268,7 +268,8 @@ static std::shared_ptr<Profile> ParseProfile(const json& j) {
         }
         Get(w, "face", W.face); W.face = Lower(W.face);
         Get(w, "text_up", W.textUp); W.textUp = Lower(W.textUp);
-        if (W.textUp != "fingers" && W.textUp != "between" && W.textUp != "along_arm") throw std::runtime_error(tag + ": text_up must be fingers, between or along_arm");
+        if (W.textUp != "fingers" && W.textUp != "between" && W.textUp != "along_arm" && W.textUp != "custom") throw std::runtime_error(tag + ": text_up must be fingers, between, along_arm or custom");
+        Get(w, "rotate_deg", W.rotateDeg);
         Get(w, "size_m", W.size); Get(w, "toward_elbow_m", W.towardElbow); Get(w, "lift_m", W.lift); Get(w, "side_m", W.side);
         Get(w, "columns", W.columns);
         Get(w, "facing_deg", W.facingDeg); Get(w, "gaze_deg", W.gazeDeg);
@@ -362,6 +363,7 @@ bool SavePlacement(const Profile& p, std::string& err) {
             if (!j.contains(keys[h])) continue;
             json& w = j[keys[h]]; const WristStyle& W = p.wrist[h];
             w["size_m"] = r(W.size); w["toward_elbow_m"] = r(W.towardElbow); w["lift_m"] = r(W.lift); w["side_m"] = r(W.side);
+            w["text_up"] = W.textUp; if (W.textUp == "custom") w["rotate_deg"] = std::round(W.rotateDeg * 10.f) / 10.f;
         }
         std::ofstream f(path, std::ios::binary | std::ios::trunc);
         if (!f) { err = "cannot write " + WToUtf8(path); return false; }

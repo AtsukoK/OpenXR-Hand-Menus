@@ -44,6 +44,10 @@ bool Engine::WristPoseNow(int h, XrPosef& pose, Vec3& n) const {
     Vec3 xAlong = h == 0 ? Z * -1.f : Z;
     Vec3 yAlong = Cross(n, xAlong);
     Vec3 y = W.textUp == "along_arm" ? yAlong : W.textUp == "between" ? Norm(yFingers + yAlong) : yFingers;
+    if (W.textUp == "custom") { // turned by rotate_deg from along_arm, around the panel normal
+        float a = W.rotateDeg * kDeg;
+        y = Norm(yAlong * std::cos(a) + Cross(n, yAlong) * std::sin(a));
+    }
     Vec3 x = Cross(y, n);
     Vec3 c = V(hr.gripPose.position) + Z * W.towardElbow + n * W.lift + Norm(Cross(Z, n)) * W.side;
     pose.position = X(c);
@@ -105,7 +109,7 @@ void Engine::UpdateWrist(int h) {
         if (wv.visible) { wv.visible = false; wv.hover = -1; wv.version++; Log("%s wrist panel hidden", h ? "right" : "left"); }
     };
     auto root = src.pages.find(src.start);
-    if (!W.enabled || root == src.pages.end() || wr.open || kb.visible || !fr.headValid) {
+    if (!W.enabled || root == src.pages.end() || (wr.open && !adjust) || kb.visible || !fr.headValid) {
         hide(); R.condSince = -1; return;
     }
     XrPosef pose; Vec3 n;
@@ -180,7 +184,19 @@ void Engine::UpdateWrist(int h) {
         Vec3 d = V(hr.gripPose.position) + grab.off - V(fr.h[h].gripPose.position);
         Wm.towardElbow = Dot(d, Z); Wm.lift = Dot(d, n); Wm.side = Dot(d, side);
         float dt = (float)std::clamp(now - lastNow, 0.0, 0.1);
-        Wm.size = std::clamp(Wm.size * (1.f + hr.sy * dt * 0.8f), 0.05f, 0.4f);
+        auto dz = [](float v) { return std::fabs(v) < 0.25f ? 0.f : v; };
+        Wm.size = std::clamp(Wm.size * (1.f + dz(hr.sy) * dt * 0.8f), 0.05f, 0.4f);
+        if (dz(hr.sx) != 0.f) { // stick sideways turns the text; the panel becomes 'custom'
+            if (Wm.textUp != "custom") {
+                Vec3 yNow = Rotate(pose.orientation, { 0, 1, 0 });
+                Vec3 xAlong = h == 0 ? Z * -1.f : Z, yAlong = Cross(n, xAlong);
+                Wm.rotateDeg = std::atan2(Dot(yNow, Cross(n, yAlong)), Dot(yNow, yAlong)) / kDeg;
+                Wm.textUp = "custom";
+            }
+            Wm.rotateDeg += dz(hr.sx) * dt * 90.f;
+            if (Wm.rotateDeg > 180.f) Wm.rotateDeg -= 360.f;
+            if (Wm.rotateDeg < -180.f) Wm.rotateDeg += 360.f;
+        }
         Vec3 nn;
         if (WristPoseNow(h, pose, nn)) { wv.pose = pose; wv.sizeM = Wm.size; }
         wv.cursor = false;

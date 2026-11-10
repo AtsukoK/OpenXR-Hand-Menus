@@ -15,7 +15,7 @@ void Engine::Reset() {
     if (wr.open) CloseWheel();
     kb = KeyboardView{}; kbRepeatKey = kbRepeatHand = -1;
     for (int h = 0; h < 2; h++) { wrist[h] = WristView{}; wrun[h] = WristRun{}; }
-    adjust = false; grab = GrabRun{};
+    adjust = false; grab = GrabRun{}; adjustClosedAt = -1;
     Keys::ReleaseAll();
     keyToggles.clear();
     xrToggles.clear(); xrHolds.clear(); pulses.clear();
@@ -152,7 +152,7 @@ bool Engine::RunAction(const Action& a, int hand, int bi, bool fromWheel) {
     case ActType::Adjust:
         adjust = !adjust; grab = GrabRun{};
         if (adjust) Toast("Adjust: grip to move, stick to resize", 4.0);
-        else { saveRequested = true; Toast("Positions saved", 2.0); }
+        else { saveRequested = true; Toast("Positions saved", 2.0); if (wr.open) CloseWheel(); }
         Log("adjust mode %s", adjust ? "on" : "off");
         return false;
     default:
@@ -229,7 +229,7 @@ void Engine::ProcessBindings() {
         if (!b.enabled || bs[i].armed) continue;
         const InputId& trig = b.chord.back();
         if (!Pressed(trig)) continue;
-        if (wr.open && b.action.type != ActType::Wheel && b.action.type != ActType::Keyboard) continue;
+        if (wr.open && b.action.type != ActType::Wheel && b.action.type != ActType::Keyboard && b.action.type != ActType::Adjust) continue;
         if (kb.visible && b.action.type != ActType::Keyboard) continue;
         if (!LayersOk(b)) continue;
         bool others = true;
@@ -259,6 +259,21 @@ void Engine::ProcessBindings() {
 // Adjust mode, wheel: grab the open wheel with the other hand's grip and move it; its stick resizes.
 void Engine::UpdateAdjustWheel() {
     if (grab.target == 2 && (!adjust || !wr.open)) grab = GrabRun{};
+    // Adjust mode shows the main wheel by itself (again shortly after it is closed), following the hand.
+    if (adjust && wr.open) adjustClosedAt = -1;
+    else if (adjust && !kb.visible) {
+        if (adjustClosedAt < 0) adjustClosedAt = now;
+        if (now - adjustClosedAt > 0.6 && !prof->wheels.empty()) {
+            int hand = fr.h[1].gripValid ? 1 : 0;
+            Action a; a.type = ActType::Wheel; a.confirm = "button";
+            a.wheel = prof->wheels.count(hand ? "right" : "left") ? (hand ? "right" : "left") : prof->wheels.begin()->first;
+            for (auto& b : prof->bindings) // prefer the wheel this hand really opens
+                if (b.enabled && b.action.type == ActType::Wheel && !b.chord.empty() && b.chord.back().hand == hand && prof->wheels.count(b.action.wheel)) { a.wheel = b.action.wheel; break; }
+            OpenWheel(a, -1, hand);
+            wr.locked = false;
+            adjustClosedAt = -1;
+        }
+    }
     if (!adjust || !wr.open || (grab.target >= 0 && grab.target != 2)) return;
     int g = 1 - wr.openerHand;
     const HandRaw& hr = fr.h[g];
@@ -370,6 +385,7 @@ void Engine::Select(int idx) {
     Log("select '%s'", it.label.c_str());
     if (prof->haptics) haptics.push_back({ wr.selHand, std::min(1.f, prof->hapticAmp * 1.6f), 0.04f });
     if (it.action.type == ActType::Wheel || it.action.type == ActType::Back) { RunAction(it.action, wr.selHand, -1, true); return; }
+    if (adjust && it.action.type != ActType::Adjust && it.action.type != ActType::Close) return; // adjust mode: only finishing works
     RunAction(it.action, wr.selHand, -1, true);
     if (wr.open && (prof->sel.closeAfterSelect || it.action.type == ActType::Close)) CloseWheel();
     else Dirty();

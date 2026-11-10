@@ -170,6 +170,7 @@ public class WristModel
     [JsonPropertyName("text_up")] public string TextUp { get; set; } = "fingers";
     [JsonPropertyName("lift_m")] public float Lift { get; set; } = 0.025f;
     [Browsable(false)][JsonPropertyName("side_m")] public float Side { get; set; }
+    [JsonPropertyName("rotate_deg")] public float RotateDeg { get; set; }
     [JsonPropertyName("columns")] public int Columns { get; set; } = 3;
     [JsonPropertyName("facing_deg")] public float FacingDeg { get; set; } = 35f;
     [JsonPropertyName("gaze_deg")] public float GazeDeg { get; set; } = 20f;

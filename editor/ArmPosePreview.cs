@@ -38,6 +38,7 @@ public class ArmPosePreview : Control
         {
             case "between": armAngle = -45; caption = "Arm half raised: text turned halfway"; break;
             case "along_arm": armAngle = 0; caption = "Arm across the body: text along the forearm"; break;
+            case "custom": armAngle = -(wp?.RotateDeg ?? 0); caption = $"Custom: text turned {wp?.RotateDeg ?? 0:0} degrees from along the forearm"; break;
             default: armAngle = -90; caption = "Hand held up, palm to face: top toward the fingers"; break;
         }
         if (RightArm) armAngle = -180 - armAngle;

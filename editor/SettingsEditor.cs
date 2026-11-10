@@ -97,7 +97,7 @@ public class SettingsEditor : EditorBase
         if (!wp.Pages.ContainsKey(wp.Start ?? "")) pageChoices = pageChoices.Append(new Choice(wp.Start ?? "", (wp.Start ?? "") + "  (missing: add a page with this name)")).ToArray();
         wrist.AddRow("", Check($"Show buttons on my {armName} forearm", wp.Enabled, v => wp.Enabled = v),
             $"Appears only when you turn the {armName} forearm toward your eyes AND look at it. Your {otherHand} hand presses the buttons.");
-        Label lFirst = null;
+        Label lFirst = null, lRot = null;
         var other = p.WristFor(wristHand == 1 ? 0 : 1);
         if (wristHand >= 0)
             wrist.AddRow("", Check($"Mirror the {otherHand} panel (same pages and buttons)", wp.Mirror, v => { wp.Mirror = v; if (v) other.Mirror = false; FormPanel.Show(lFirst, !v); }),
@@ -108,7 +108,10 @@ public class SettingsEditor : EditorBase
         wrist.AddRow("Side of the arm", Pick(new Choice[] { new("inner", "Inner side / underside (palm side)"), new("back", "Back of the wrist (like a watch)") }, wp.Face, v => wp.Face = v));
         var pose = new ArmPosePreview { Mode = wp.TextUp ?? "fingers", RightArm = wristHand == 1, Profile = p };
         Changed += () => pose.Invalidate(); // size, offsets, columns, side and mirror all show in the picture
-        wrist.AddRow("Text direction", Pick(new Choice[] { new("fingers", "Top toward my fingers (hand held up, palm to face)"), new("between", "In between (arm half raised)"), new("along_arm", "Along the forearm (arm held across my body)") }, wp.TextUp ?? "fingers", v => { wp.TextUp = v; pose.Mode = v; }));
+        wrist.AddRow("Text direction", Pick(new Choice[] { new("fingers", "Top toward my fingers (hand held up, palm to face)"), new("between", "In between (arm half raised)"), new("along_arm", "Along the forearm (arm held across my body)"), new("custom", "Custom angle (set below, or by turning it in adjust mode)") }, wp.TextUp ?? "fingers", v => { wp.TextUp = v; pose.Mode = v; FormPanel.Show(lRot, v == "custom"); }));
+        lRot = wrist.AddRow("Custom angle (deg)", Num(-180, 180, 5, 0, wp.RotateDeg, v => { wp.RotateDeg = v; pose.Invalidate(); }),
+            "0 = text along the forearm. Turn it by hand in the headset: Adjust positions, grab the panel, push the stick left or right.");
+        FormPanel.Show(lRot, wp.TextUp == "custom");
         wrist.AddRow("", pose);
         wrist.AddRow("Press buttons by", Pick(new Choice[] { new("both", "Poking or pointing + trigger"), new("poke", "Poking with the other controller"), new("point", "Pointing + trigger") }, wp.Press, v => wp.Press = v));
         wrist.AddRow("Columns", Int(1, 4, 1, wp.Columns, v => wp.Columns = v));

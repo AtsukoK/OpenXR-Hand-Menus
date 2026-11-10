@@ -303,14 +303,19 @@ int main(int argc, char** argv) {
         CHECK(e.Blocked(1, C_GRIP), "adjust: the grabbing grip is hidden from the game");
         f.h[1].gripPose.position = X(V(f.h[1].gripPose.position) + Vec3{ 0, 0, 0.04f }); f.h[1].aimPose = f.h[1].gripPose;
         f.h[1].sy = 1; step(10); f.h[1].sy = 0;
+        Vec3 up0v = Rotate(e.wrist[0].pose.orientation, { 0, 1, 0 });
+        f.h[1].sx = 1; step(20); f.h[1].sx = 0; // about 20 degrees
+        Vec3 up1v = Rotate(e.wrist[0].pose.orientation, { 0, 1, 0 });
+        float turned = std::acos(std::clamp(Dot(up0v, up1v), -1.f, 1.f)) * 57.2958f;
+        CHECK(q->wrist[0].textUp == "custom" && turned > 12.f && turned < 30.f, ("adjust: stick sideways turns the panel (custom), turned " + std::to_string(turned)).c_str());
         CHECK(std::fabs(q->wrist[0].towardElbow - (elbow0 + 0.04f)) < 0.003f, "adjust: dragging moves the panel along the forearm");
         CHECK(q->wrist[0].size > size0, "adjust: stick up while holding makes the panel bigger");
         CHECK(std::fabs(V(e.wrist[0].pose.position).z - (pc.z + 0.04f)) < 0.003f, "adjust: the panel follows the hand");
         f.h[1].grip = 0; step(3);
         // Open the right wheel (double tap thumbrest), grab it with the left grip, lift it 5 cm.
         f.h[1].gripPose.position = { 0.3f, 1.0f, -0.3f };
-        f.h[1].rest = true; step(3); f.h[1].rest = false; step(3); f.h[1].rest = true; step(3); f.h[1].rest = false; step(3);
-        CHECK(e.view.visible, "adjust: the wheel still opens in adjust mode");
+        step(70);
+        CHECK(e.view.visible && e.wrist[0].visible, "adjust: the main wheel shows by itself, next to the wrist panels");
         Vec3 wc = V(e.view.pose.position);
         f.h[0].gripPose.position = X(wc); step(2);
         f.h[0].grip = 1; step(2);
@@ -318,9 +323,8 @@ int main(int argc, char** argv) {
         CHECK(std::fabs(q->style.handUp - (up0 + 0.05f)) < 0.004f, "adjust: dragging the wheel up raises it above the hand");
         CHECK(q->style.radius < rad0, "adjust: stick down while holding makes the wheel smaller");
         f.h[0].grip = 0; step(3);
-        f.h[1].b2 = true; step(2); f.h[1].b2 = false; step(3); // close the wheel
         f.h[0].b1 = true; step(2); f.h[0].b1 = false; step(3);
-        CHECK(!e.adjust && e.saveRequested, "adjust: using it again leaves adjust mode and asks to save");
+        CHECK(!e.adjust && e.saveRequested && !e.view.visible, "adjust: using it again leaves adjust mode, closes the wheel and asks to save");
     }
 
     // Adjust mode saving: write the placement into a (temporary) profile file and read it back.
@@ -330,13 +334,14 @@ int main(int argc, char** argv) {
         auto q = ParseProfileText(DefaultProfileJson(), err);
         q->sourceName = "vro_save_test.json";
         q->style.handUp = 0.17f; q->style.radius = 0.15f; q->wrist[0].towardElbow = 0.2f; q->wrist[0].side = -0.01f; q->wrist[1].size = 0.13f;
+        q->wrist[0].textUp = "custom"; q->wrist[0].rotateDeg = 33.f;
         std::string serr;
         bool ok = SavePlacement(*q, serr);
         std::ifstream in(path, std::ios::binary); std::stringstream ss; ss << in.rdbuf(); in.close();
         auto back = ParseProfileText(ss.str(), err);
         CHECK(ok && back && std::fabs(back->style.handUp - 0.17f) < 1e-4f && std::fabs(back->style.radius - 0.15f) < 1e-4f
               && std::fabs(back->wrist[0].towardElbow - 0.2f) < 1e-4f && std::fabs(back->wrist[0].side + 0.01f) < 1e-4f
-              && std::fabs(back->wrist[1].size - 0.13f) < 1e-4f && back->wheels.size() == q->wheels.size(),
+              && std::fabs(back->wrist[1].size - 0.13f) < 1e-4f && back->wrist[0].textUp == "custom" && std::fabs(back->wrist[0].rotateDeg - 33.f) < 0.1f && back->wheels.size() == q->wheels.size(),
               ("adjust: positions are saved to the profile file and the rest is kept " + serr).c_str());
         DeleteFileW(path.c_str());
     }
