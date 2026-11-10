@@ -65,7 +65,7 @@ struct Style {
 };
 
 struct Selection {
-    std::string method = "thumbstick"; // thumbstick|point|both
+    std::string method = "both";       // thumbstick|point|both
     std::string hand = "opener";       // opener|left|right
     float deadzone = 0.5f;
     int confirmComp = C_TRIGGER;       // used when confirm = button

@@ -208,7 +208,7 @@ public class SelectionModel
 {
     [Description("thumbstick: push the stick toward an item\npoint: aim the controller at an item\nboth"), TypeConverter(typeof(MethodConv))]
     [DisplayName("Select items with")]
-    [JsonPropertyName("method")] public string Method { get; set; } = "thumbstick";
+    [JsonPropertyName("method")] public string Method { get; set; } = "both";
     [Description("Which hand selects: the hand that opened the wheel, or always left/right."), TypeConverter(typeof(SelHandConv))]
     [DisplayName("Selecting hand")]
     [JsonPropertyName("hand")] public string Hand { get; set; } = "opener";
