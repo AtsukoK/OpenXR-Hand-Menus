@@ -193,6 +193,7 @@ public partial class MainForm : Form
         ts.Items.Add(Btn("Install layer", () => RunScript("install.ps1")));
         ts.Items.Add(Btn("Uninstall layer", () => RunScript("uninstall.ps1")));
         ts.Items.Add(layerStatus);
+        AddUpdateButton(ts);
         profileBox.SelectedIndexChanged += (s, e) => { if (!loading && profileBox.SelectedItem is string f) { if (ConfirmDiscard()) LoadFile(Path.Combine(ProfilesDir, f)); } };
 
         var left = new Panel { Dock = DockStyle.Fill };

@@ -39,6 +39,11 @@ public class SettingsEditor : EditorBase
             "So pressing buttons to use the wheel doesn't also do things in the game.");
         general.AddRow("", Check("Vibrate when pointing at and picking items", p.Haptics, v => p.Haptics = v));
         general.AddRow("Vibration strength", Num(0, 1, 0.05m, 2, p.HapticStrength, v => p.HapticStrength = v));
+        {   // app-wide, not part of the profile, so it doesn't mark the profile as changed
+            var upd = new CheckBox { Text = "Check GitHub for a newer version when the editor starts", AutoSize = true, Checked = MainForm.UpdateCheckOn };
+            upd.CheckedChanged += (o, e) => MainForm.UpdateCheckOn = upd.Checked;
+            general.AddRow("Updates", upd, "Only reads the public release list on GitHub; nothing about you is sent, and nothing is downloaded or installed by itself.");
+        }
         general.AddRow("", Check("Show messages in the headset (layer on/off, profile reloaded, errors)", p.Notifications, v => p.Notifications = v));
 
         // ---------------- wheel position & look
