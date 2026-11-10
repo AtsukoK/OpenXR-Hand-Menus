@@ -1,4 +1,4 @@
-namespace VRHandMenusEditor;
+namespace OpenXRHandMenusEditor;
 
 // Start page: one card per feature with a clear ON / MIRRORED / OFF status and the switches for it.
 public class OverviewEditor : EditorBase

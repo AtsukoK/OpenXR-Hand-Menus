@@ -1,6 +1,6 @@
 using System.Drawing.Drawing2D;
 
-namespace VRHandMenusEditor;
+namespace OpenXRHandMenusEditor;
 
 // ------------------------------------------------------------ plain-English choices
 public record Choice(string Code, string Text) { public override string ToString() => Text; }

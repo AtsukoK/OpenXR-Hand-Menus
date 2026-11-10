@@ -1,7 +1,7 @@
-# Removes the VR Hand Menus OpenXR layer registration (needs admin).
+# Removes the OpenXR Hand Menus OpenXR layer registration (needs admin).
 $key = 'HKLM:\SOFTWARE\Khronos\OpenXR\1\ApiLayers\Implicit'
 if (Test-Path $key) {
-    (Get-Item $key).Property | Where-Object { ($_ -like '*XR_APILAYER_NOVENDOR_vr_hand_menus.json' -or $_ -like '*XR_APILAYER_NOVENDOR_vr_radial_overlay.json') } |
+    (Get-Item $key).Property | Where-Object { ($_ -like '*XR_APILAYER_NOVENDOR_openxr_hand_menus.json' -or $_ -like '*XR_APILAYER_NOVENDOR_vr_radial_overlay.json') } |
         ForEach-Object { Remove-ItemProperty $key -Name $_; Write-Host "Removed: $_" }
 }
 Start-Sleep 1

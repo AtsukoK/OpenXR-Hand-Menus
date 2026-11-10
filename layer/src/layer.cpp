@@ -1,4 +1,4 @@
-// VR Hand Menus - OpenXR API layer.
+// OpenXR Hand Menus - OpenXR API layer.
 // Adds a configurable radial menu, chords and layers on top of any OpenXR game.
 #include "panel.h"
 #include "keys.h"
@@ -8,7 +8,7 @@
 #include <set>
 #include <climits>
 
-#define LAYER_NAME "XR_APILAYER_NOVENDOR_vr_hand_menus"
+#define LAYER_NAME "XR_APILAYER_NOVENDOR_openxr_hand_menus"
 
 // ---------------------------------------------------------------- next-layer functions
 static PFN_xrGetInstanceProcAddr gNextGipa = nullptr;
@@ -157,8 +157,8 @@ static void EnsureActions() {
     gHandPath[0] = P("/user/hand/left");
     gHandPath[1] = P("/user/hand/right");
     XrActionSetCreateInfo si{ XR_TYPE_ACTION_SET_CREATE_INFO };
-    strcpy_s(si.actionSetName, "vr_hand_menus_set");
-    strcpy_s(si.localizedActionSetName, "VR Hand Menus");
+    strcpy_s(si.actionSetName, "openxr_hand_menus_set");
+    strcpy_s(si.localizedActionSetName, "OpenXR Hand Menus");
     si.priority = gMinPriority == INT_MAX ? 0 : (uint32_t)gMinPriority;
     XrResult r = N.CreateActionSet(gInst, &si, &gSet);
     if (XR_FAILED(r)) { Log("CreateActionSet failed %d", r); gSet = XR_NULL_HANDLE; return; }

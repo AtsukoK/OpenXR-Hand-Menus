@@ -5,8 +5,8 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>VRHandMenusEditor</AssemblyName>
-    <RootNamespace>VRHandMenusEditor</RootNamespace>
+    <AssemblyName>OpenXRHandMenusEditor</AssemblyName>
+    <RootNamespace>OpenXRHandMenusEditor</RootNamespace>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <NoWarn>$(NoWarn);WFO1000</NoWarn>

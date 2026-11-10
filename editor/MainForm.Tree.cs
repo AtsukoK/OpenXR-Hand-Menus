@@ -1,6 +1,6 @@
 using System.Drawing.Drawing2D;
 
-namespace VRHandMenusEditor;
+namespace OpenXRHandMenusEditor;
 
 // The list on the left: drawn by hand so each row has an icon, a bold name, a plain-English
 // description and a big on/off dot; sections are coloured bands with a status and "+ Add".

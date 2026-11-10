@@ -1,4 +1,4 @@
-namespace VRHandMenusEditor;
+namespace OpenXRHandMenusEditor;
 
 static class Program
 {

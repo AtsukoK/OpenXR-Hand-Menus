@@ -1,6 +1,6 @@
 using System.Drawing.Drawing2D;
 
-namespace VRHandMenusEditor;
+namespace OpenXRHandMenusEditor;
 
 // A drawing of a forearm and hand in the pose the wrist panel's text direction is meant for, with
 // the panel drawn to scale on the arm: its size, its distance back from the controller, and the

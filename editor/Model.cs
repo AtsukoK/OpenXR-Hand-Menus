@@ -1,7 +1,7 @@
 using System.ComponentModel;
 using System.Text.Json.Serialization;
 
-namespace VRHandMenusEditor;
+namespace OpenXRHandMenusEditor;
 
 // ------------------------------------------------------------ dropdown helpers
 public abstract class ChoiceConverter : StringConverter

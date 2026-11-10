@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace VRHandMenusEditor;
+namespace OpenXRHandMenusEditor;
 
 // A guided first-run tour. A coach card explains each step and an orange frame marks what to look at
 // or click. "Do it" steps wait until the user has done the thing (added a binding, a wheel, ...).
@@ -32,7 +32,7 @@ public partial class MainForm
         if (File.Exists(TourFlag) || Environment.GetCommandLineArgs().Length > 1) return;
         void Seen() { try { Directory.CreateDirectory(DataDir); File.WriteAllText(TourFlag, DateTime.Now.ToString("s")); } catch { } }
         using var dlg = new Form { Text = "First time here?", FormBorderStyle = FormBorderStyle.FixedDialog, StartPosition = FormStartPosition.CenterParent, MinimizeBox = false, MaximizeBox = false, ShowInTaskbar = false, ClientSize = new Size(520, 230), Font = new Font("Segoe UI", 10.5f) };
-        dlg.Controls.Add(new Label { Text = "Welcome to VR Hand Menus!\n\nTake a short guided tour? It shows how to add a binding, a wheel and a sub-wheel, and where the settings are. Anything you make during the tour can be thrown away at the end.\n\nYou can always start it later with the 'Tutorial' button at the top.", Location = new Point(18, 14), Size = new Size(484, 150) });
+        dlg.Controls.Add(new Label { Text = "Welcome to OpenXR Hand Menus!\n\nTake a short guided tour? It shows how to add a binding, a wheel and a sub-wheel, and where the settings are. Anything you make during the tour can be thrown away at the end.\n\nYou can always start it later with the 'Tutorial' button at the top.", Location = new Point(18, 14), Size = new Size(484, 150) });
         var bar = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 54, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(10) };
         Button B(string t, DialogResult r, bool main = false)
         {
@@ -226,7 +226,7 @@ public partial class MainForm
             File.WriteAllText(tmp, tourSnapshot);
             LoadFile(tmp);
             currentFile = tourFile;
-            Text = "VR Hand Menus - Profile Editor - " + Path.GetFileName(currentFile);
+            Text = "OpenXR Hand Menus - Profile Editor - " + Path.GetFileName(currentFile);
             if (tourWasDirty) MarkDirty(); else dirty = false;
             SetStatus("Tour changes thrown away.", false);
         }

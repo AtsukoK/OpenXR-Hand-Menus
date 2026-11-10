@@ -1,6 +1,6 @@
 using System.Drawing.Drawing2D;
 
-namespace VRHandMenusEditor;
+namespace OpenXRHandMenusEditor;
 
 // Small pictures that say at a glance what a card or page is about: a wheel, a wrist panel,
 // the keyboard, a controller, the headset. Drawn from the real profile where that helps.
