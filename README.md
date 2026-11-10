@@ -2,7 +2,7 @@
 
 Radial wheels, wrist panels, button combos and a VR keyboard for any OpenXR game. It's an OpenXR API layer, so it works under Virtual Desktop (VDXR), SteamVR OpenXR, Meta Link, Pimax and other runtimes without patching the game or the runtime, the same way OpenXR Toolkit loads. A desktop editor sets everything up, with per-game profiles.
 
-**[Download the latest release](https://github.com/AtsukoK/OpenXR-Hand-Menus/releases/latest)**
+**[Download the latest release](https://github.com/AtsukoK/OpenXR-Hand-Menus/releases/latest)** · **[My other work and support on Patreon](https://www.patreon.com/cw/AtsukoK)**
 
 ## Screenshots
 
@@ -111,6 +111,10 @@ Needs Visual Studio Build Tools (C++ with CMake) and the .NET 10 SDK.
 - `build_all.ps1` does both and fills `dist\` (it uses the author's local tool paths in `layer\build.bat`).
 
 `layeruildro_test.exe` runs the offline engine tests. The GitHub Actions workflow builds the same tester package on every push.
+
+## Support
+
+If OpenXR Hand Menus is useful to you, you can support its development and find my other VR mods on **[Patreon](https://www.patreon.com/cw/AtsukoK)**. Bug reports and ideas are welcome as [GitHub issues](https://github.com/AtsukoK/OpenXR-Hand-Menus/issues).
 
 ## Licence
 
