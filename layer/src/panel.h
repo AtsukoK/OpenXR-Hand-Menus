@@ -46,4 +46,6 @@ void DrawToast(std::vector<uint32_t>& out, int w, int h, const std::string& text
 void DrawKeyboard(std::vector<uint32_t>& out, int w, int h, const KeyboardView& kb, const Style& st);
 void DrawWrist(std::vector<uint32_t>& out, int size, const Profile& p, const WristStyle& w, const WristView& v);
 void DrawCursor(std::vector<uint32_t>& out, int size, int level, const Style& st);
+void DrawPointerDot(std::vector<uint32_t>& out, int size, const Style& st);
+void DrawBeam(std::vector<uint32_t>& out, int w, int h, const Style& st);
 void DrawShutdown();

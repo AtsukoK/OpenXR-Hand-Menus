@@ -53,8 +53,8 @@ struct WheelItem {
 struct Wheel { std::string name, title; std::vector<WheelItem> items; };
 
 struct Style {
-    std::string anchor = "hand_locked"; // hand|hand_locked|head|head_locked
-    float radius = 0.12f, distance = 0.45f, headDown = 0.10f;
+    std::string anchor = "head_locked"; // hand|hand_locked|head|head_locked
+    float radius = 0.127f, distance = 0.70f, headDown = 0.10f;
     float handUp = 0.10f, handToward = 0.06f;
     float innerRatio = 0.34f, gapDeg = 1.5f;
     std::string font = "Segoe UI";

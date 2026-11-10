@@ -71,6 +71,13 @@ struct Cell { float x, y, w, h; }; // 0..1, y down
 void WristLayout(int count, int columns, std::vector<Cell>& out, Cell& header);
 
 struct HapticReq { int hand; float amp; float sec; };
+// Laser pointer of one controller: a beam from the controller and a dot where it hits a wheel,
+// the keyboard or a wrist panel. Shown only while it is aimed at one of them.
+struct PointerView {
+    bool on = false;
+    XrPosef dotPose{ {0,0,0,1}, {0,0,0} }; float dotSize = 0.012f;
+    XrPosef beamPose{ {0,0,0,1}, {0,0,0} }; float beamLen = 0.f;
+};
 
 class Engine {
 public:
@@ -78,6 +85,7 @@ public:
     WheelView view;
     KeyboardView kb;
     WristView wrist[2];             // [0] left forearm, [1] right forearm
+    PointerView pointer[2];         // per controller
     std::string toast; uint64_t toastVersion = 0; double toastUntil = 0;
     std::vector<HapticReq> haptics;
     bool reloadRequested = false;
@@ -150,6 +158,7 @@ private:
     void OpenKeyboard(int bi);
     void CloseKeyboard();
     void UpdateKeyboard();
+    void UpdatePointers();
     void KbPress(int key, int hand);
     int KbHit(int hand) const;
     // wrist panel

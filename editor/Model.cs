@@ -129,11 +129,11 @@ public class StyleModel
 {
     [Description("hand: follows the opening hand\nhand_locked: appears at the hand and stays put\nhead: follows your view\nhead_locked: appears in front of you and stays put"), TypeConverter(typeof(AnchorConv))]
     [DisplayName("Wheel position")]
-    [JsonPropertyName("anchor")] public string Anchor { get; set; } = "hand_locked";
+    [JsonPropertyName("anchor")] public string Anchor { get; set; } = "head_locked";
     [DisplayName("Wheel size (radius, m)")]
-    [Description("Wheel radius in metres.")][JsonPropertyName("radius_m")] public float Radius { get; set; } = 0.12f;
+    [Description("Wheel radius in metres.")][JsonPropertyName("radius_m")] public float Radius { get; set; } = 0.127f;
     [DisplayName("Distance in front of head (m)")]
-    [Description("Head anchors: distance in front of you, metres.")][JsonPropertyName("head_distance_m")] public float HeadDistance { get; set; } = 0.45f;
+    [Description("Head anchors: distance in front of you, metres.")][JsonPropertyName("head_distance_m")] public float HeadDistance { get; set; } = 0.70f;
     [DisplayName("Below eye level (m)")]
     [Description("Head anchors: how far below eye level, metres.")][JsonPropertyName("head_down_m")] public float HeadDown { get; set; } = 0.10f;
     [DisplayName("Above hand (m)")]

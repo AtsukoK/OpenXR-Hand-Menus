@@ -463,6 +463,48 @@ void Engine::UpdateWheel() {
     if (sel.autoCloseMs > 0 && (now - wr.openTime) * 1000 > sel.autoCloseMs) CloseWheel();
 }
 
+// Laser pointers: for each controller, the nearest pointable surface it is aimed at.
+void Engine::UpdatePointers() {
+    for (int h = 0; h < 2; h++) {
+        PointerView& P = pointer[h]; P.on = false;
+        const HandRaw& hr = fr.h[h];
+        if (!hr.aimValid || !fr.headValid) continue;
+        Vec3 o = V(hr.aimPose.position), d = Rotate(hr.aimPose.orientation, { 0, 0, -1 });
+        float best = 1e9f; XrQuaternionf bestQ{ 0,0,0,1 };
+        // Ray against a square/rect surface (half sizes in metres, with a little margin).
+        auto test = [&](const XrPosef& pose, float hw, float hh) {
+            Vec3 c = V(pose.position), n = Rotate(pose.orientation, { 0, 0, 1 });
+            float den = Dot(d, n);
+            if (std::fabs(den) < 1e-4f) return;
+            float t = Dot(c - o, n) / den;
+            if (t <= 0.01f || t > 3.f || t >= best) return;
+            Vec3 l = RotateInv(pose.orientation, (o + d * t) - c);
+            if (std::fabs(l.x) > hw * 1.1f || std::fabs(l.y) > hh * 1.1f) return;
+            best = t; bestQ = pose.orientation;
+        };
+        if (wr.open && h == wr.selHand && (prof->sel.method == "point" || prof->sel.method == "both"))
+            test(wr.pose, prof->style.radius, prof->style.radius);
+        if (kb.visible) test(kb.pose, kb.widthM / 2, kb.heightM / 2);
+        int panel = 1 - h; // a hand points at the panel on the other arm
+        const WristView& wv = wrist[panel];
+        if (wv.visible && prof->wrist[panel].press != "poke" && !(grab.target == panel)) {
+            float dPanel = Len(V(wv.pose.position) - o);
+            if (dPanel > 0.09f) test(wv.pose, wv.sizeM / 2, wv.sizeM / 2); // close up it is poking, with its own cursor
+        }
+        if (best > 1e8f) continue;
+        Vec3 hit = o + d * best;
+        Vec3 n = Rotate(bestQ, { 0, 0, 1 });
+        P.on = true;
+        P.dotPose = { bestQ, X(hit + n * 0.003f) };
+        P.dotSize = 0.008f + 0.006f * best;
+        Vec3 mid = (o + hit) * 0.5f, eye = V(fr.head.position);
+        Vec3 toEye = eye - mid; toEye = toEye - d * Dot(toEye, d);
+        Vec3 z = Len(toEye) > 1e-4f ? Norm(toEye) : n;
+        P.beamPose = { QuatFromBasis(Cross(d, z), d, z), X(mid) };
+        P.beamLen = best;
+    }
+}
+
 void Engine::ComputeBlocks() {
     bool want[2][C_COUNT]{};
     for (int i = 0; i < (int)bs.size(); i++) {
@@ -514,6 +556,7 @@ void Engine::Update(const Frame& f) {
     UpdateWrist(0);
     UpdateWrist(1);
     ComputeBlocks();
+    UpdatePointers();
     lastNow = now;
 
     view.visible = wr.open;

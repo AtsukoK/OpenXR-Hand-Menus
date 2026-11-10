@@ -130,6 +130,12 @@ int main(int argc, char** argv) {
         aimAt(1, shiftKey); aimAt(0, qKey); step(30);
         CHECK(e.kb.hover[1] == shiftKey, "right ray hovers Shift");
         CHECK(e.kb.hover[0] == qKey, "left ray hovers Q");
+        {
+            const KbKey& k = keys[qKey];
+            Vec3 want = V(e.kb.pose.position) + Rotate(e.kb.pose.orientation, { ((k.x + k.w / 2) / uw - 0.5f) * e.kb.widthM, (0.5f - (k.y + k.h / 2) / uh) * e.kb.heightM, 0 });
+            CHECK(e.pointer[0].on && e.pointer[1].on && Len(V(e.pointer[0].dotPose.position) - want) < 0.01f, "keyboard: both controllers show a pointer, the dot sits on the aimed key");
+            CHECK(e.pointer[0].beamLen > 0.1f, "keyboard: the pointer beam reaches from the controller to the key");
+        }
         f.h[1].trig = 1; step(2); f.h[1].trig = 0; step(2);
         CHECK(e.kb.shift, "trigger on Shift latches shift");
         std::vector<uint32_t> kpx; int KW = 1500, KH = (int)(KW * uh / uw);
@@ -284,7 +290,7 @@ int main(int argc, char** argv) {
         InputId ai; ParseInput("left.x", ai); ab.chord.push_back(ai);
         ab.gesture = "press"; ab.block = "trigger"; ab.action.type = ActType::Adjust;
         q->bindings.push_back(ab);
-        float elbow0 = q->wrist[0].towardElbow, size0 = q->wrist[0].size, up0 = q->style.handUp, rad0 = q->style.radius;
+        float elbow0 = q->wrist[0].towardElbow, size0 = q->wrist[0].size, down0 = q->style.headDown, dist0 = q->style.distance, rad0 = q->style.radius;
         Engine e; e.SetProfile(q);
         Frame f; double t = 0;
         f.headValid = true; f.head = XrPosef{ {0,0,0,1}, {0, 1.6f, 0} };
@@ -320,7 +326,7 @@ int main(int argc, char** argv) {
         f.h[0].gripPose.position = X(wc); step(2);
         f.h[0].grip = 1; step(2);
         f.h[0].gripPose.position = X(wc + Vec3{ 0, 0.05f, 0 }); f.h[0].sy = -1; step(10); f.h[0].sy = 0;
-        CHECK(std::fabs(q->style.handUp - (up0 + 0.05f)) < 0.004f, "adjust: dragging the wheel up raises it above the hand");
+        CHECK(std::fabs(q->style.headDown - (down0 - 0.05f)) < 0.004f && std::fabs(q->style.distance - dist0) < 0.01f, "adjust: dragging the wheel up raises it (head-anchored default)");
         CHECK(q->style.radius < rad0, "adjust: stick down while holding makes the wheel smaller");
         f.h[0].grip = 0; step(3);
         f.h[0].b1 = true; step(2); f.h[0].b1 = false; step(3);

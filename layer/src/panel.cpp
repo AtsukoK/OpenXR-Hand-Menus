@@ -1,5 +1,6 @@
 #include "panel.h"
 #include <algorithm>
+#include <cmath>
 #include <map>
 #include <memory>
 #include <objidl.h>
@@ -319,6 +320,38 @@ void DrawCursor(std::vector<uint32_t>& out, int S, int level, const Style& st) {
         g.FillEllipse(&dot, S / 2.f - r, S / 2.f - r, 2 * r, 2 * r);
     }
     Grab(bmp, out, S, S);
+}
+
+// Laser pointer: a white dot with an accent ring, and a beam that fades toward the controller.
+void DrawPointerDot(std::vector<uint32_t>& out, int S, const Style& st) {
+    EnsureGdi();
+    Bitmap bmp(S, S, PixelFormat32bppPARGB);
+    Graphics g(&bmp);
+    g.SetSmoothingMode(SmoothingModeAntiAlias);
+    g.Clear(Color(0, 0, 0, 0));
+    float pad = S * 0.1f, d = S - 2 * pad;
+    Pen ring(Color(st.accent), S * 0.12f);
+    g.DrawEllipse(&ring, pad, pad, d, d);
+    SolidBrush dot{ Color(255, 255, 255, 255) };
+    float r = S * 0.22f;
+    g.FillEllipse(&dot, S / 2.f - r, S / 2.f - r, 2 * r, 2 * r);
+    Grab(bmp, out, S, S);
+}
+void DrawBeam(std::vector<uint32_t>& out, int W, int H, const Style& st) {
+    out.assign((size_t)W * H, 0);
+    uint32_t c = st.accent;
+    for (int y = 0; y < H; y++) {
+        // texture top = far end (hit), bottom = controller: fade out toward the controller
+        float along = 1.f - (float)y / (H - 1);
+        float a = 0.15f + 0.55f * (1.f - along);
+        for (int x = 0; x < W; x++) {
+            float across = 1.f - std::fabs((x + 0.5f) / W * 2.f - 1.f); // soft edges
+            float A = a * std::min(1.f, across * 1.6f);
+            uint32_t ai = (uint32_t)(A * 255.f);
+            uint32_t r = ((c >> 16) & 255) * ai / 255, g = ((c >> 8) & 255) * ai / 255, b = (c & 255) * ai / 255;
+            out[(size_t)y * W + x] = (ai << 24) | (r << 16) | (g << 8) | b;
+        }
+    }
 }
 
 void DrawKeyboard(std::vector<uint32_t>& out, int W, int Hp, const KeyboardView& kb, const Style& st) {

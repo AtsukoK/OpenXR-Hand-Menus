@@ -380,7 +380,7 @@ const char* DefaultProfileJson() {
   "haptics": true,
   "haptic_strength": 0.35,
   "notifications": true,
-  "style": { "anchor": "hand_locked", "radius_m": 0.12 },
+  "style": { "anchor": "head_locked", "radius_m": 0.127, "head_distance_m": 0.7, "head_down_m": 0.1 },
   "selection": { "method": "both", "hand": "opener", "deadzone": 0.5, "confirm_button": "trigger", "cancel_button": "secondary" },
   "keyboard": { "width_m": 0.56, "distance_m": 0.45, "below_eyes_m": 0.3 },
   "bindings": [
@@ -423,8 +423,8 @@ const char* DefaultProfileJson() {
     ] }
   },
   "wrist_left": {
-    "enabled": true, "mirror": false, "face": "inner", "text_up": "between", "press": "both", "columns": 3,
-    "size_m": 0.11, "toward_elbow_m": 0.13, "lift_m": 0.025,
+    "enabled": true, "mirror": false, "face": "inner", "text_up": "custom", "rotate_deg": -140.3, "press": "both", "columns": 3,
+    "size_m": 0.073, "toward_elbow_m": 0.06, "lift_m": 0.022, "side_m": 0.085,
     "start_page": "Left hand main",
     "pages": {
       "Left hand main": { "title": "Left hand", "items": [
@@ -446,8 +446,8 @@ const char* DefaultProfileJson() {
     }
   },
   "wrist_right": {
-    "enabled": true, "mirror": false, "face": "inner", "text_up": "between", "press": "both", "columns": 3,
-    "size_m": 0.11, "toward_elbow_m": 0.13, "lift_m": 0.025,
+    "enabled": true, "mirror": false, "face": "inner", "text_up": "custom", "rotate_deg": 138.3, "press": "both", "columns": 3,
+    "size_m": 0.084, "toward_elbow_m": 0.053, "lift_m": -0.008, "side_m": -0.091,
     "start_page": "Right hand main",
     "pages": {
       "Right hand main": { "title": "Right hand", "items": [
