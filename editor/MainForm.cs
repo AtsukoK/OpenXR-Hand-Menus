@@ -1107,7 +1107,15 @@ public partial class MainForm : Form
     void RunScript(string name)
     {
         string script = Path.Combine(ScriptDir, name);
-        if (!File.Exists(script)) { MessageBox.Show(this, script + " not found."); return; }
+        if (!File.Exists(script) || !File.Exists(Path.Combine(ScriptDir, LayerJson)) || !File.Exists(Path.Combine(ScriptDir, "OpenXRHandMenus.dll")))
+        {
+            MessageBox.Show(this, "The layer files aren't next to the editor, so it can't install the layer.\n\n" +
+                "Looked in: " + ScriptDir + "\n\n" +
+                "Extract the WHOLE zip first (right-click it > Extract All), then run OpenXRHandMenusEditor.exe from the extracted folder. " +
+                "It needs install.ps1, OpenXRHandMenus.dll and " + LayerJson + " in the same folder. " +
+                "Running the exe straight from inside the zip doesn't work.", "Layer files not found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
         try
         {
             var p = Process.Start(new ProcessStartInfo("powershell.exe", $"-NoProfile -ExecutionPolicy Bypass -File \"{script}\"") { Verb = "runas", UseShellExecute = true });
