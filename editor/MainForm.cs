@@ -181,6 +181,7 @@ public partial class MainForm : Form
         ts.Items.Add(Btn("New game profile...", NewProfile));
         ts.Items.Add(Btn("Delete profile", DeleteProfile));
         ts.Items.Add(new ToolStripSeparator());
+        ts.Items.Add(Btn("Controllers", () => ChooseControllers(false)));
         ts.Items.Add(Btn("Tutorial", StartTutorial));
         ts.Items.Add(new ToolStripSeparator());
         ts.Items.Add(Btn("Save (Ctrl+S)", () => Save()));
@@ -707,6 +708,18 @@ public partial class MainForm : Form
             var err = Native.Validate(json);
             sb.AppendLine($"{Path.GetFileName(file)}: {(err == null ? "OK" : "ERROR " + err)} ({f.Profile.Bindings.Count} bindings, {f.Profile.Wheels.Count} wheels)");
             if (err != null) bad++;
+        }
+        // Controller choices applied to the built-in defaults must still pass the layer's parser.
+        var builtin = Path.Combine(Path.GetTempPath(), "vro_builtin_default.json");
+        File.WriteAllText(builtin, Native.DefaultProfile() ?? "{}");
+        foreach (var (id, _, _) in ControllerKinds)
+        {
+            f.LoadFile(builtin);
+            int n = ApplyControllerOpeners(f.Profile, id);
+            var err = Native.Validate(f.Serialize());
+            var openers = string.Join(", ", f.Profile.Bindings.Where(b => b.Action?.Type == "wheel").Select(b => b.Input + " " + b.Gesture));
+            sb.AppendLine($"controllers {id}: {(err == null && n == 2 ? "OK" : "ERROR " + err)} ({n} openers: {openers})");
+            if (err != null || n != 2) bad++;
         }
         sb.AppendLine("--- round-trip of default ---");
         f.LoadFile(def); sb.AppendLine(f.Serialize());
