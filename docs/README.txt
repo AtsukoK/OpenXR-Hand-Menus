@@ -1,4 +1,4 @@
-OpenXR Hand Menus - test build 2026-11-10
+OpenXR Hand Menus v0.1.0 (test build)
 
 Adds radial menus (wheels), wrist panels, button combos and a VR keyboard to any OpenXR game.
 Works with Virtual Desktop (VDXR), SteamVR OpenXR, Meta Link and other OpenXR runtimes.
@@ -9,7 +9,10 @@ INSTALL
    The game loads the overlay from this folder, so don't move or delete it after installing.
    If you do move it, click Install layer again.
 2. Run OpenXRHandMenusEditor.exe.
-   The first time, it offers a short tour. It's worth doing: it takes about two minutes.
+   The first time, it asks which controllers you use (this picks the buttons that open
+   the wheels), then offers a short tour. The tour is worth doing: it takes about two minutes.
+   Windows may warn that the program is unrecognised (it isn't code-signed yet):
+   click "More info", then "Run anyway".
 3. Click "Install layer" at the top. Windows asks for admin rights, which it needs to
    register the overlay with OpenXR.
 4. Start an OpenXR game. A message at the bottom of your view saying
@@ -17,11 +20,15 @@ INSTALL
 
 
 DEFAULT CONTROLS
-- Double-tap the right thumbrest: right-hand wheel. Push the stick toward an item and let
-  it spring back to pick it.
-- Double-tap the left thumbrest: left-hand wheel.
+- Open a hand's wheel (depends on the controllers you picked):
+    Quest / Rift / Pico: double-tap that hand's thumbrest
+    Index / Pimax / Bigscreen: double-click that hand's thumbstick
+    WMR / HP Reverb / Vive: hold that hand's menu button
+  Push the stick toward an item and let it spring back to pick it (WMR/Vive: let go of menu).
+  The "Controllers" button at the top of the editor changes this later.
 - Wrist panels: turn your wrist toward your face and look at it. Poke a button with your
-  other hand's finger, or point at it and pull the trigger.
+  other hand's controller (a ring shows where it will touch), or point at it and pull
+  the trigger.
 - The VR keyboard is on the wheels and the left wrist panel.
 
 Change anything in the editor and save (Ctrl+S). A running game picks it up within a second.
