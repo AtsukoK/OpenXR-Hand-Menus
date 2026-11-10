@@ -59,6 +59,11 @@ struct WristView {
     float sizeM = 0.11f;
     std::vector<bool> on;   // per cell: its toggle is currently on
     uint64_t version = 0;
+    // Touch cursor: a ring on the panel under the pressing hand's fingertip.
+    bool cursor = false;
+    XrPosef cursorPose{ {0,0,0,1}, {0,0,0} };
+    float cursorSize = 0.02f;
+    int cursorLevel = 0;    // 0 far .. 7 almost touching, 8 touching/pushed in
 };
 struct Cell { float x, y, w, h; }; // 0..1, y down
 // Header strip plus a grid; the same numbers are used for drawing and hit tests.

@@ -108,8 +108,9 @@ static XrTime gPredTime = 0;
 static uint64_t gSyncIdx = 0;
 
 static Engine gEng;
-static Panel gWheelPanel, gToastPanel, gKbPanel, gWristPanel[2];
+static Panel gWheelPanel, gToastPanel, gKbPanel, gWristPanel[2], gCursorPanel[2];
 static uint64_t gDrawnWrist[2] = { ~0ull, ~0ull };
+static int gDrawnCursor[2] = { -1, -1 };
 static uint64_t gDrawnKb = ~0ull;
 static uint64_t gDrawnWheel = ~0ull, gDrawnToast = ~0ull;
 static int gWheelTex = 0;
@@ -335,7 +336,7 @@ static XrResult XRAPI_CALL Hook_xrCreateSession(XrInstance inst, const XrSession
 }
 
 static void DestroySessionStuff() {
-    gWheelPanel.Destroy(gSwap); gToastPanel.Destroy(gSwap); gKbPanel.Destroy(gSwap); gDrawnKb = ~0ull; for (int h = 0; h < 2; h++) { gWristPanel[h].Destroy(gSwap); gDrawnWrist[h] = ~0ull; }
+    gWheelPanel.Destroy(gSwap); gToastPanel.Destroy(gSwap); gKbPanel.Destroy(gSwap); gDrawnKb = ~0ull; for (int h = 0; h < 2; h++) { gWristPanel[h].Destroy(gSwap); gDrawnWrist[h] = ~0ull; gCursorPanel[h].Destroy(gSwap); gDrawnCursor[h] = -1; }
     for (int h = 0; h < 2; h++) {
         if (gGripSp[h]) N.DestroySpace(gGripSp[h]);
         if (gAimSp[h]) N.DestroySpace(gAimSp[h]);
@@ -524,7 +525,7 @@ static XrResult XRAPI_CALL Hook_xrEndFrame(XrSession s, const XrFrameEndInfo* fi
     std::lock_guard l(gMx);
     if (s != gSess || !fi || !gEng.Active() || !gGfx.api) return N.EndFrame(s, fi);
     std::vector<const XrCompositionLayerBaseHeader*> layers(fi->layers, fi->layers + fi->layerCount);
-    XrCompositionLayerQuad wq{ XR_TYPE_COMPOSITION_LAYER_QUAD }, tq{ XR_TYPE_COMPOSITION_LAYER_QUAD }, kq{ XR_TYPE_COMPOSITION_LAYER_QUAD }, rq[2]{ { XR_TYPE_COMPOSITION_LAYER_QUAD }, { XR_TYPE_COMPOSITION_LAYER_QUAD } };
+    XrCompositionLayerQuad wq{ XR_TYPE_COMPOSITION_LAYER_QUAD }, tq{ XR_TYPE_COMPOSITION_LAYER_QUAD }, kq{ XR_TYPE_COMPOSITION_LAYER_QUAD }, rq[2]{ { XR_TYPE_COMPOSITION_LAYER_QUAD }, { XR_TYPE_COMPOSITION_LAYER_QUAD } }, cq[2]{ { XR_TYPE_COMPOSITION_LAYER_QUAD }, { XR_TYPE_COMPOSITION_LAYER_QUAD } };
     const Profile& p = *gEng.prof;
 
     if (gEng.view.visible && gLocal) {
@@ -586,6 +587,28 @@ static XrResult XRAPI_CALL Hook_xrEndFrame(XrSession s, const XrFrameEndInfo* fi
             q.pose = wv.pose;
             q.size = { wv.sizeM, wv.sizeM };
             layers.push_back((const XrCompositionLayerBaseHeader*)&q);
+        }
+        // Touch cursor on top of the panel: redrawn only when its look changes, moved every frame.
+        if (pn.ready && wv.cursor) {
+            const int CS = 128;
+            Panel& cp = gCursorPanel[h];
+            if (!cp.sc) cp.Create(gSess, gGfx, gSwap, CS, CS);
+            if (cp.sc && gDrawnCursor[h] != wv.cursorLevel) {
+                std::vector<uint32_t> px;
+                DrawCursor(px, CS, wv.cursorLevel, p.style);
+                if (cp.Upload(gGfx, gSwap, px)) gDrawnCursor[h] = wv.cursorLevel;
+            }
+            if (cp.ready) {
+                auto& q = cq[h];
+                q.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+                q.space = gLocal;
+                q.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+                q.subImage.swapchain = cp.sc;
+                q.subImage.imageRect = { {0, 0}, {CS, CS} };
+                q.pose = wv.cursorPose;
+                q.size = { wv.cursorSize, wv.cursorSize };
+                layers.push_back((const XrCompositionLayerBaseHeader*)&q);
+            }
         }
     }
     if (NowSec() < gEng.toastUntil && gView) {

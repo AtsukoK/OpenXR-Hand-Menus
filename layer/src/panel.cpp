@@ -295,6 +295,32 @@ void DrawToast(std::vector<uint32_t>& out, int W, int H, const std::string& text
 }
 
 
+// Touch cursor: a ring that thickens and brightens with closeness (level 0..7), a filled dot when touching (8).
+void DrawCursor(std::vector<uint32_t>& out, int S, int level, const Style& st) {
+    EnsureGdi();
+    Bitmap bmp(S, S, PixelFormat32bppPARGB);
+    Graphics g(&bmp);
+    g.SetSmoothingMode(SmoothingModeAntiAlias);
+    g.Clear(Color(0, 0, 0, 0));
+    float k = level / 8.f;
+    float pad = S * 0.08f, d = S - 2 * pad;
+    if (level >= 8) {
+        SolidBrush fill{ Color(st.accent) };
+        g.FillEllipse(&fill, pad, pad, d, d);
+        Pen edge(Color(0xFFFFFFFF), S * 0.06f);
+        g.DrawEllipse(&edge, pad, pad, d, d);
+    } else {
+        BYTE a = (BYTE)(90 + 150 * k);
+        uint32_t c = st.accent;
+        Pen ring(Color(a, (BYTE)(c >> 16), (BYTE)(c >> 8), (BYTE)c), S * (0.05f + 0.07f * k));
+        g.DrawEllipse(&ring, pad, pad, d, d);
+        SolidBrush dot{ Color((BYTE)(60 + 120 * k), 255, 255, 255) };
+        float r = S * 0.06f;
+        g.FillEllipse(&dot, S / 2.f - r, S / 2.f - r, 2 * r, 2 * r);
+    }
+    Grab(bmp, out, S, S);
+}
+
 void DrawKeyboard(std::vector<uint32_t>& out, int W, int Hp, const KeyboardView& kb, const Style& st) {
     EnsureGdi();
     Bitmap bmp(W, Hp, PixelFormat32bppPARGB);

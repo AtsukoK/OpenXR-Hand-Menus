@@ -162,11 +162,22 @@ void Engine::UpdateWrist(int h) {
     bool settled = now - R.shownAt > 0.2; // nothing fires in the first moment
 
     // Poke: the tip of the other controller pushes through the panel surface.
+    wv.cursor = false;
     if (canPoke && hr.aimValid) {
         Vec3 tip = V(hr.aimPose.position) + Rotate(hr.aimPose.orientation, { 0, 0, -1 }) * 0.015f;
         float u, v, d; toPanel(tip, u, v, d);
         bool inside = u >= 0 && u <= 1 && v >= 0 && v <= 1;
         if (inside && d > -0.04f && d < 0.05f) hover = WristCellAt(h, u, v);
+        // Touch cursor: shows where the fingertip will land, shrinking and filling in as it gets close.
+        const float kCursorRange = 0.06f;
+        if (inside && d > -0.04f && d < kCursorRange) {
+            float k = d <= 0.f ? 0.f : d / kCursorRange;   // 0 touching .. 1 far
+            Vec3 at = c + Rotate(pose.orientation, { (u - 0.5f) * W.size, (0.5f - v) * W.size, 0.002f });
+            wv.cursor = true;
+            wv.cursorPose = { pose.orientation, { at.x, at.y, at.z } };
+            wv.cursorSize = 0.010f + 0.018f * k;
+            wv.cursorLevel = d <= 0.f ? 8 : std::min(7, (int)((1.f - k) * 8.f));
+        } else wv.cursor = false;
         if (!inside || d > 0.02f) R.pokeArmed = true;  // pulled back out: ready for the next poke
         if (settled && inside && R.pokeArmed && R.prevDepth > 0.f && d <= 0.f && hover >= 0) {
             R.pokeArmed = false;

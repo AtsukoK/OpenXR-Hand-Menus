@@ -177,6 +177,15 @@ int main(int argc, char** argv) {
         tipAt(0.03f); step(30);
         CHECK(e.wrist[0].hover == 2, "finger in front of a button hovers it");
         CHECK(!e.kb.visible, "hovering alone does not press");
+        CHECK(e.wrist[0].cursor && e.wrist[0].cursorLevel > 0 && e.wrist[0].cursorLevel < 8, "touch cursor shows while the finger is close");
+        {
+            Vec3 lc = RotateInv(e.wrist[0].pose.orientation, V(e.wrist[0].cursorPose.position) - V(e.wrist[0].pose.position));
+            CHECK(std::fabs(lc.x - (u - 0.5f) * p->wrist[0].size) < 0.002f && std::fabs(lc.y - (0.5f - v) * p->wrist[0].size) < 0.002f, "touch cursor sits under the fingertip");
+            float sizeFar = e.wrist[0].cursorSize; tipAt(0.005f); step(1);
+            CHECK(e.wrist[0].cursorSize < sizeFar && e.wrist[0].cursorLevel >= 7, "touch cursor shrinks as the finger closes in");
+            std::vector<uint32_t> cpx; DrawCursor(cpx, 128, 4, p->style); SavePng(cpx, 128, 128, L"cursor_near.png");
+            DrawCursor(cpx, 128, 8, p->style); SavePng(cpx, 128, 128, L"cursor_touch.png");
+        }
         tipAt(-0.01f); step(2);
         CHECK(e.kb.visible, "poking through the button runs its action (keyboard)");
         CHECK(!e.wrist[0].visible, "wrist panel steps aside for the keyboard");
