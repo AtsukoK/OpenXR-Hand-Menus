@@ -238,6 +238,30 @@ int main(int argc, char** argv) {
         CHECK(e.wrist[0].visible && e.wrist[0].wheel && e.wrist[0].wheel->name == "rmain", "left forearm can mirror the right panel");
     }
 
+    // Index-style opener: double touch of B. Pressing B twice fast (looting) must not open it.
+    {
+        auto q = ParseProfileText(DefaultProfileJson(), err);
+        for (auto& b : q->bindings) if (b.action.type == ActType::Wheel) b.enabled = false;
+        Binding ob; ob.name = "touch wheel"; ob.chordText = "right.secondary.touch";
+        InputId r; ParseInput("right.secondary.touch", r); ob.chord.push_back(r);
+        ob.gesture = "double_tap"; ob.doubleTapMs = 400; ob.block = "none";
+        ob.action.type = ActType::Wheel; ob.action.wheel = "right"; ob.action.confirm = "stick_return";
+        q->bindings.insert(q->bindings.begin(), ob);
+        Engine e; e.SetProfile(q);
+        Frame f; double t = 0;
+        f.headValid = true; f.head.position = { 0, 1.6f, 0 };
+        f.h[1].gripValid = true; f.h[1].gripPose.position = { 0.2f, 1.1f, -0.3f };
+        auto step = [&](int frames = 1) { for (int i = 0; i < frames; i++) { t += 0.011; f.t = t; e.Update(f); } };
+        step(5);
+        for (int k = 0; k < 2; k++) {   // two quick real presses: touch first, then click
+            f.h[1].b2t = true; step(1); f.h[1].b2 = true; step(3); f.h[1].b2 = false; f.h[1].b2t = false; step(4);
+        }
+        CHECK(!e.view.visible, "pressing B twice fast does not open the double-touch wheel");
+        step(60);
+        f.h[1].b2t = true; step(4); f.h[1].b2t = false; step(4); f.h[1].b2t = true; step(4);
+        CHECK(e.view.visible, "touching B twice without pressing opens the wheel");
+    }
+
     printf("\n%d failures\n", fails);
     Keys::Shutdown();
     DrawShutdown();

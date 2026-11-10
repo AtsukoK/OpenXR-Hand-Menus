@@ -207,6 +207,14 @@ void Engine::ProcessBindings() {
         }
         if (b.gesture == "hold" && !s.fired && dur * 1000 >= b.holdMs) Fire(i);
     }
+    // A double tap on a .touch input only counts touches that never become a real press:
+    // pressing the button (e.g. B twice fast to loot) cancels it, so it can't open a wheel.
+    // (Thumbrest and menu report touch and press as the same thing, so they're left alone.)
+    for (int i = 0; i < (int)B.size(); i++) {
+        const InputId& t = B[i].chord.back();
+        if (B[i].gesture == "double_tap" && t.feat == F_TOUCH && t.comp != C_THUMBREST && t.comp != C_MENU
+            && cur[t.hand][t.comp][F_PRESS]) bs[i].lastTap = -1;
+    }
     // New presses: arm the most specific matching bindings.
     std::vector<int> cand;
     for (int i = 0; i < (int)B.size(); i++) {
