@@ -45,7 +45,7 @@ bool Engine::WristPoseNow(int h, XrPosef& pose, Vec3& n) const {
     Vec3 yAlong = Cross(n, xAlong);
     Vec3 y = W.textUp == "along_arm" ? yAlong : W.textUp == "between" ? Norm(yFingers + yAlong) : yFingers;
     Vec3 x = Cross(y, n);
-    Vec3 c = V(hr.gripPose.position) + Z * W.towardElbow + n * W.lift;
+    Vec3 c = V(hr.gripPose.position) + Z * W.towardElbow + n * W.lift + Norm(Cross(Z, n)) * W.side;
     pose.position = X(c);
     pose.orientation = QuatFromBasis(x, y, n);
     return true;
@@ -101,6 +101,7 @@ void Engine::UpdateWrist(int h) {
     const WristStyle& src = prof->WristPages(h); // whose pages are shown
     WristView& wv = wrist[h]; WristRun& R = wrun[h];
     auto hide = [&] {
+        if (grab.target == h) grab = GrabRun{};
         if (wv.visible) { wv.visible = false; wv.hover = -1; wv.version++; Log("%s wrist panel hidden", h ? "right" : "left"); }
     };
     auto root = src.pages.find(src.start);
@@ -117,13 +118,13 @@ void Engine::UpdateWrist(int h) {
     float slack = wv.visible ? 15.f : 0.f;
     bool facing = Dot(n, toEye) >= std::cos((W.facingDeg + slack) * kDeg);
     bool looked = Dot(fwd, toEye * -1.f) >= std::cos((W.gazeDeg + slack) * kDeg);
-    bool cond = facing && looked && dist < 0.8f;
+    bool cond = (facing && looked && dist < 0.8f) || adjust; // adjust mode: always shown
 
     if (!cond) { R.condSince = -1; R.closedByItem = false; } // Close/Back on the first page needs a fresh look
     else if (R.condSince < 0) R.condSince = now;
 
     if (!wv.visible) {
-        if (cond && !R.closedByItem && (now - R.condSince) * 1000 >= W.showMs) {
+        if (cond && !R.closedByItem && ((now - R.condSince) * 1000 >= W.showMs || adjust)) {
             R.stack.assign(1, &root->second);
             wv = WristView{}; wv.visible = true; wv.version++;
             R.shownAt = now; R.lostSince = -1; R.pokeArmed = false; R.prevDepth = 1.f;
@@ -140,6 +141,7 @@ void Engine::UpdateWrist(int h) {
 
     wv.pose = pose;
     wv.sizeM = W.size;
+    if (wv.adjust != adjust) { wv.adjust = adjust; wv.version++; }
     const Wheel* top = R.stack.back();
     bool nested = R.stack.size() > 1;
     if (wv.wheel != top || wv.nested != nested) { wv.wheel = top; wv.nested = nested; wv.hover = -1; wv.version++; }
@@ -161,6 +163,40 @@ void Engine::UpdateWrist(int h) {
     };
     bool settled = now - R.shownAt > 0.2; // nothing fires in the first moment
 
+    // Adjust mode: the other hand's grip grabs the panel; it follows that hand, and its stick resizes.
+    if (grab.target == h && (!adjust || !cur[o][C_GRIP][F_PRESS] || !hr.gripValid)) {
+        grab = GrabRun{};
+        if (prof->haptics) haptics.push_back({ o, prof->hapticAmp * 0.6f, 0.015f });
+    }
+    if (adjust && grab.target < 0 && hr.gripValid && cur[o][C_GRIP][F_PRESS] && !prev[o][C_GRIP][F_PRESS]
+        && Len(V(hr.gripPose.position) - c) < W.size * 0.7f + 0.08f) {
+        grab = { h, o, c - V(hr.gripPose.position) };
+        if (prof->haptics) haptics.push_back({ o, prof->hapticAmp, 0.02f });
+    }
+    if (grab.target == h) {
+        WristStyle& Wm = prof->wrist[h];
+        const XrQuaternionf& q = fr.h[h].gripPose.orientation;
+        Vec3 Z = Rotate(q, { 0, 0, 1 }), side = Norm(Cross(Z, n));
+        Vec3 d = V(hr.gripPose.position) + grab.off - V(fr.h[h].gripPose.position);
+        Wm.towardElbow = Dot(d, Z); Wm.lift = Dot(d, n); Wm.side = Dot(d, side);
+        float dt = (float)std::clamp(now - lastNow, 0.0, 0.1);
+        Wm.size = std::clamp(Wm.size * (1.f + hr.sy * dt * 0.8f), 0.05f, 0.4f);
+        Vec3 nn;
+        if (WristPoseNow(h, pose, nn)) { wv.pose = pose; wv.sizeM = Wm.size; }
+        wv.cursor = false;
+        if (wv.hover != -1) { wv.hover = -1; wv.version++; }
+        return;
+    }
+    // In adjust mode only page navigation and the Adjust button itself ("Done") can be pressed.
+    auto allowed = [&](int cell) {
+        if (!adjust) return true;
+        int idx = cell - (wv.nested ? 1 : 0);
+        if (idx < 0) return true; // the automatic Back cell
+        if (idx >= (int)wv.wheel->items.size()) return false;
+        ActType t = wv.wheel->items[idx].action.type;
+        return t == ActType::Adjust || t == ActType::Page || t == ActType::Back;
+    };
+
     // Poke: the tip of the other controller pushes through the panel surface.
     wv.cursor = false;
     if (canPoke && hr.aimValid) {
@@ -179,7 +215,7 @@ void Engine::UpdateWrist(int h) {
             wv.cursorLevel = d <= 0.f ? 8 : std::min(7, (int)((1.f - k) * 8.f));
         } else wv.cursor = false;
         if (!inside || d > 0.02f) R.pokeArmed = true;  // pulled back out: ready for the next poke
-        if (settled && inside && R.pokeArmed && R.prevDepth > 0.f && d <= 0.f && hover >= 0) {
+        if (settled && inside && R.pokeArmed && R.prevDepth > 0.f && d <= 0.f && hover >= 0 && allowed(hover)) {
             R.pokeArmed = false;
             WristActivate(h, hover, o);
             if (!wv.visible || R.closedByItem) { hide(); return; }
@@ -198,7 +234,7 @@ void Engine::UpdateWrist(int h) {
             }
         }
         bool trigEdge = cur[o][C_TRIGGER][F_PRESS] && !prev[o][C_TRIGGER][F_PRESS];
-        if (settled && trigEdge && hover >= 0) {
+        if (settled && trigEdge && hover >= 0 && allowed(hover)) {
             WristActivate(h, hover, o);
             if (R.closedByItem) { hide(); return; }
         }

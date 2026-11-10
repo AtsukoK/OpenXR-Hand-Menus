@@ -15,6 +15,7 @@ void Engine::Reset() {
     if (wr.open) CloseWheel();
     kb = KeyboardView{}; kbRepeatKey = kbRepeatHand = -1;
     for (int h = 0; h < 2; h++) { wrist[h] = WristView{}; wrun[h] = WristRun{}; }
+    adjust = false; grab = GrabRun{};
     Keys::ReleaseAll();
     keyToggles.clear();
     xrToggles.clear(); xrHolds.clear(); pulses.clear();
@@ -148,6 +149,12 @@ bool Engine::RunAction(const Action& a, int hand, int bi, bool fromWheel) {
     case ActType::Keyboard:
         OpenKeyboard(bi);
         return false;
+    case ActType::Adjust:
+        adjust = !adjust; grab = GrabRun{};
+        if (adjust) Toast("Adjust: grip to move, stick to resize", 4.0);
+        else { saveRequested = true; Toast("Positions saved", 2.0); }
+        Log("adjust mode %s", adjust ? "on" : "off");
+        return false;
     default:
         return false;
     }
@@ -247,6 +254,47 @@ void Engine::ProcessBindings() {
             else s.lastTap = now;
         }
     }
+}
+
+// Adjust mode, wheel: grab the open wheel with the other hand's grip and move it; its stick resizes.
+void Engine::UpdateAdjustWheel() {
+    if (grab.target == 2 && (!adjust || !wr.open)) grab = GrabRun{};
+    if (!adjust || !wr.open || (grab.target >= 0 && grab.target != 2)) return;
+    int g = 1 - wr.openerHand;
+    const HandRaw& hr = fr.h[g];
+    Style& st = prof->style;
+    Vec3 c = V(wr.pose.position);
+    if (grab.target < 0) {
+        bool edge = cur[g][C_GRIP][F_PRESS] && !prev[g][C_GRIP][F_PRESS];
+        if (edge && hr.gripValid && Len(V(hr.gripPose.position) - c) < st.radius + 0.08f) {
+            grab = { 2, g, c - V(hr.gripPose.position) };
+            if (prof->haptics) haptics.push_back({ g, prof->hapticAmp, 0.02f });
+        }
+        return;
+    }
+    if (!cur[g][C_GRIP][F_PRESS] || !hr.gripValid) {
+        grab = GrabRun{};
+        if (prof->haptics) haptics.push_back({ g, prof->hapticAmp * 0.6f, 0.015f });
+        return;
+    }
+    c = V(hr.gripPose.position) + grab.off;
+    Vec3 head = V(fr.head.position);
+    bool handAnchor = st.anchor == "hand" || st.anchor == "hand_locked";
+    const HandRaw& oh = fr.h[wr.openerHand];
+    if (handAnchor && oh.gripValid) {
+        Vec3 gp = V(oh.gripPose.position);
+        Vec3 toward = head - gp; toward.y = 0; toward = Norm(toward);
+        st.handUp = c.y - gp.y;
+        st.handToward = Dot(c - gp, toward);
+    } else {
+        Vec3 f = Rotate(fr.head.orientation, { 0, 0, -1 }); f.y = 0; f = Norm(f);
+        st.distance = Dot(c - head, f);
+        st.headDown = head.y - c.y;
+    }
+    float dt = (float)std::clamp(now - lastNow, 0.0, 0.1);
+    st.radius = std::clamp(st.radius * (1.f + hr.sy * dt * 0.8f), 0.05f, 0.4f);
+    wr.pose.position = X(c);
+    wr.pose.orientation = BillboardTo(c, head);
 }
 
 XrPosef Engine::WheelPose(int hand) const {
@@ -418,6 +466,10 @@ void Engine::ComputeBlocks() {
         }
     }
     if (kb.visible) for (auto& h : want) for (auto& c : h) c = true;
+    if (adjust) { // the grips move things around; the grabbing hand's stick resizes
+        want[0][C_GRIP] = want[1][C_GRIP] = true;
+        if (grab.hand >= 0) want[grab.hand][C_STICK] = true;
+    }
     for (int h = 0; h < 2; h++) // the pressing (other) hand's trigger belongs to the panel while over a button
         if (wrist[h].visible && wrist[h].hover >= 0) want[1 - h][C_TRIGGER] = true;
     for (int h = 0; h < 2; h++)
@@ -441,10 +493,12 @@ void Engine::Update(const Frame& f) {
     ComputeDown();
     ProcessBindings();
     UpdateWheel();
+    UpdateAdjustWheel();
     UpdateKeyboard();
     UpdateWrist(0);
     UpdateWrist(1);
     ComputeBlocks();
+    lastNow = now;
 
     view.visible = wr.open;
     if (wr.open) {

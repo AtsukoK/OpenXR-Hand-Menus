@@ -37,7 +37,7 @@ public static class Choices
         new("layer", "Switch a layer (changes what other buttons do)"),
         new("xr_input", "Press a controller button inside the game"),
         new("back", "Wheel: go back one level"), new("close", "Wheel: close"),
-        new("reload", "Reload this profile"), new("none", "Do nothing"),
+        new("reload", "Reload this profile"), new("adjust", "Adjust positions: move wheels and wrist panels by hand"), new("none", "Do nothing"),
     };
     public static readonly Choice[] KeyModes = { new("tap", "Tap it once"), new("hold", "Keep it held while my button is held"), new("toggle", "Toggle: first time down, next time up") };
     public static readonly Choice[] LayerModes = { new("hold", "On while held"), new("toggle", "Toggle on / off"), new("on", "Turn on"), new("off", "Turn off") };

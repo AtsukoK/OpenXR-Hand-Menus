@@ -84,6 +84,7 @@ public partial class MainForm
         tree.BeforeExpand += (s, e) => { if (UserToggle()) e.Cancel = true; };
         tree.KeyDown += (s, e) => arrowKey = e.KeyCode is Keys.Left or Keys.Right or Keys.Add or Keys.Subtract or Keys.Multiply;
         tree.KeyUp += (s, e) => arrowKey = false;
+        Activated += (s, e) => CheckFileChangedOutside();
         Shown += (s, e) => { ApplyFolds(); if (tree.Nodes.Count > 0) tree.TopNode = tree.Nodes[0]; tree.Invalidate(); BeginInvoke(new Action(AskControllerOnFirstRun)); }; // the first build can happen before the list exists on screen
         tree.AfterCollapse += (s, e) => { if (folding && !rebuilding && e.Node.Tag != null) { folded.Add(e.Node.Tag); unfolded.Remove(e.Node.Tag); } tree.Invalidate(); }; // only the user's own folds count
         tree.AfterExpand += (s, e) => { if (!rebuilding && e.Node.Tag != null) { folded.Remove(e.Node.Tag); unfolded.Add(e.Node.Tag); } tree.Invalidate(); };
@@ -157,6 +158,7 @@ public partial class MainForm
             "wheel" => $"Opens wheel '{a.Wheel}'",
             "page" => $"Opens page '{a.Page}'",
             "keyboard" => "Opens the VR keyboard",
+            "adjust" => "Adjust mode on/off: grip to move, stick to resize",
             "layer" => a.Mode switch { "on" => $"Turns layer '{a.Layer}' on", "off" => $"Turns layer '{a.Layer}' off", "toggle" => $"Switches layer '{a.Layer}' on/off", _ => $"Layer '{a.Layer}' while held" },
             "xr_input" => $"Presses game button {a.Target}{mode}",
             "back" => "Goes back",

@@ -1,3 +1,5 @@
+#include <sstream>
+#include <fstream>
 #include "../src/panel.h"
 #include "../src/keys.h"
 #include <cstdio>
@@ -269,6 +271,70 @@ int main(int argc, char** argv) {
         step(60);
         f.h[1].b2t = true; step(4); f.h[1].b2t = false; step(4); f.h[1].b2t = true; step(4);
         CHECK(e.view.visible, "touching B twice without pressing opens the wheel");
+    }
+
+    // Adjust mode: grab a wrist panel / the open wheel with the grip, move and resize it, then save.
+    {
+        auto q = ParseProfileText(DefaultProfileJson(), err);
+        Binding ab; ab.name = "adjust"; ab.chordText = "left.x";
+        InputId ai; ParseInput("left.x", ai); ab.chord.push_back(ai);
+        ab.gesture = "press"; ab.block = "trigger"; ab.action.type = ActType::Adjust;
+        q->bindings.push_back(ab);
+        float elbow0 = q->wrist[0].towardElbow, size0 = q->wrist[0].size, up0 = q->style.handUp, rad0 = q->style.radius;
+        Engine e; e.SetProfile(q);
+        Frame f; double t = 0;
+        f.headValid = true; f.head = XrPosef{ {0,0,0,1}, {0, 1.6f, 0} };
+        // Left arm down and away from the face: normally no panel.
+        f.h[0].gripValid = true; f.h[0].gripPose = XrPosef{ {0,0,0,1}, {-0.3f, 1.0f, -0.2f} };
+        f.h[1].gripValid = f.h[1].aimValid = true; f.h[1].gripPose = XrPosef{ {0,0,0,1}, {0.3f, 1.0f, -0.2f} }; f.h[1].aimPose = f.h[1].gripPose;
+        auto step = [&](int frames = 1) { for (int i = 0; i < frames; i++) { t += 0.011; f.t = t; e.Update(f); } };
+        step(30);
+        CHECK(!e.wrist[0].visible, "adjust: panel hidden before adjust mode");
+        f.h[0].b1 = true; step(2); f.h[0].b1 = false; step(3);
+        CHECK(e.adjust && e.wrist[0].visible && e.wrist[0].adjust, "adjust: mode on shows the wrist panel without looking at it");
+        // Right grip grabs the left panel and moves 4 cm along +Z of the left grip (toward the elbow).
+        Vec3 pc = V(e.wrist[0].pose.position);
+        f.h[1].gripPose.position = X(pc + Vec3{ 0.01f, 0, 0 }); f.h[1].aimPose = f.h[1].gripPose; step(2);
+        f.h[1].grip = 1; step(2);
+        CHECK(e.Blocked(1, C_GRIP), "adjust: the grabbing grip is hidden from the game");
+        f.h[1].gripPose.position = X(V(f.h[1].gripPose.position) + Vec3{ 0, 0, 0.04f }); f.h[1].aimPose = f.h[1].gripPose;
+        f.h[1].sy = 1; step(10); f.h[1].sy = 0;
+        CHECK(std::fabs(q->wrist[0].towardElbow - (elbow0 + 0.04f)) < 0.003f, "adjust: dragging moves the panel along the forearm");
+        CHECK(q->wrist[0].size > size0, "adjust: stick up while holding makes the panel bigger");
+        CHECK(std::fabs(V(e.wrist[0].pose.position).z - (pc.z + 0.04f)) < 0.003f, "adjust: the panel follows the hand");
+        f.h[1].grip = 0; step(3);
+        // Open the right wheel (double tap thumbrest), grab it with the left grip, lift it 5 cm.
+        f.h[1].gripPose.position = { 0.3f, 1.0f, -0.3f };
+        f.h[1].rest = true; step(3); f.h[1].rest = false; step(3); f.h[1].rest = true; step(3); f.h[1].rest = false; step(3);
+        CHECK(e.view.visible, "adjust: the wheel still opens in adjust mode");
+        Vec3 wc = V(e.view.pose.position);
+        f.h[0].gripPose.position = X(wc); step(2);
+        f.h[0].grip = 1; step(2);
+        f.h[0].gripPose.position = X(wc + Vec3{ 0, 0.05f, 0 }); f.h[0].sy = -1; step(10); f.h[0].sy = 0;
+        CHECK(std::fabs(q->style.handUp - (up0 + 0.05f)) < 0.004f, "adjust: dragging the wheel up raises it above the hand");
+        CHECK(q->style.radius < rad0, "adjust: stick down while holding makes the wheel smaller");
+        f.h[0].grip = 0; step(3);
+        f.h[1].b2 = true; step(2); f.h[1].b2 = false; step(3); // close the wheel
+        f.h[0].b1 = true; step(2); f.h[0].b1 = false; step(3);
+        CHECK(!e.adjust && e.saveRequested, "adjust: using it again leaves adjust mode and asks to save");
+    }
+
+    // Adjust mode saving: write the placement into a (temporary) profile file and read it back.
+    {
+        std::wstring path = ProfilesDir() + L"\\vro_save_test.json";
+        { std::ofstream o(path, std::ios::binary); o << DefaultProfileJson(); }
+        auto q = ParseProfileText(DefaultProfileJson(), err);
+        q->sourceName = "vro_save_test.json";
+        q->style.handUp = 0.17f; q->style.radius = 0.15f; q->wrist[0].towardElbow = 0.2f; q->wrist[0].side = -0.01f; q->wrist[1].size = 0.13f;
+        std::string serr;
+        bool ok = SavePlacement(*q, serr);
+        std::ifstream in(path, std::ios::binary); std::stringstream ss; ss << in.rdbuf(); in.close();
+        auto back = ParseProfileText(ss.str(), err);
+        CHECK(ok && back && std::fabs(back->style.handUp - 0.17f) < 1e-4f && std::fabs(back->style.radius - 0.15f) < 1e-4f
+              && std::fabs(back->wrist[0].towardElbow - 0.2f) < 1e-4f && std::fabs(back->wrist[0].side + 0.01f) < 1e-4f
+              && std::fabs(back->wrist[1].size - 0.13f) < 1e-4f && back->wheels.size() == q->wheels.size(),
+              ("adjust: positions are saved to the profile file and the rest is kept " + serr).c_str());
+        DeleteFileW(path.c_str());
     }
 
     printf("\n%d failures\n", fails);

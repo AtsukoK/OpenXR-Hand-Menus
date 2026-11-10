@@ -3,6 +3,7 @@
 #include <fstream>
 #include <sstream>
 #include <algorithm>
+#include <cmath>
 
 using json = nlohmann::json;
 
@@ -107,6 +108,7 @@ static Action ParseAction(const json& j, const std::string& ctx) {
     else if (t == "reload") a.type = ActType::Reload;
     else if (t == "keyboard") a.type = ActType::Keyboard;
     else if (t == "page") a.type = ActType::Page;
+    else if (t == "adjust") a.type = ActType::Adjust;
     else if (t == "none" || t.empty()) a.type = ActType::None;
     else throw std::runtime_error(ctx + ": unknown action type '" + t + "'");
     Get(j, "keys", a.keys);
@@ -267,7 +269,7 @@ static std::shared_ptr<Profile> ParseProfile(const json& j) {
         Get(w, "face", W.face); W.face = Lower(W.face);
         Get(w, "text_up", W.textUp); W.textUp = Lower(W.textUp);
         if (W.textUp != "fingers" && W.textUp != "between" && W.textUp != "along_arm") throw std::runtime_error(tag + ": text_up must be fingers, between or along_arm");
-        Get(w, "size_m", W.size); Get(w, "toward_elbow_m", W.towardElbow); Get(w, "lift_m", W.lift);
+        Get(w, "size_m", W.size); Get(w, "toward_elbow_m", W.towardElbow); Get(w, "lift_m", W.lift); Get(w, "side_m", W.side);
         Get(w, "columns", W.columns);
         Get(w, "facing_deg", W.facingDeg); Get(w, "gaze_deg", W.gazeDeg);
         Get(w, "show_ms", W.showMs); Get(w, "hide_ms", W.hideMs);
@@ -342,6 +344,32 @@ std::shared_ptr<Profile> LoadProfile(std::wstring& pathOut, std::string& err) {
     }
 }
 
+// Adjust mode: put the placement numbers back into the profile file the layer loaded.
+bool SavePlacement(const Profile& p, std::string& err) {
+    std::wstring dir = ProfilesDir();
+    std::wstring path = dir + L"\\" + Utf8ToW(p.sourceName);
+    std::string text;
+    if (!ReadFile(path, text)) { err = "cannot read " + WToUtf8(path); return false; }
+    try {
+        json j = json::parse(text, nullptr, true, true);
+        auto r = [](float v) { return std::round(v * 1000.f) / 1000.f; }; // millimetres are plenty
+        json& s = j["style"];
+        s["radius_m"] = r(p.style.radius);
+        s["hand_up_m"] = r(p.style.handUp); s["hand_toward_head_m"] = r(p.style.handToward);
+        s["head_distance_m"] = r(p.style.distance); s["head_down_m"] = r(p.style.headDown);
+        const char* keys[2] = { "wrist_left", "wrist_right" };
+        for (int h = 0; h < 2; h++) {
+            if (!j.contains(keys[h])) continue;
+            json& w = j[keys[h]]; const WristStyle& W = p.wrist[h];
+            w["size_m"] = r(W.size); w["toward_elbow_m"] = r(W.towardElbow); w["lift_m"] = r(W.lift); w["side_m"] = r(W.side);
+        }
+        std::ofstream f(path, std::ios::binary | std::ios::trunc);
+        if (!f) { err = "cannot write " + WToUtf8(path); return false; }
+        f << j.dump(2);
+        return true;
+    } catch (const std::exception& e) { err = e.what(); return false; }
+}
+
 const char* DefaultProfileJson() {
     // Generic starting profile: every feature switched on so new users can see what exists.
     return R"JSON({
@@ -380,6 +408,7 @@ const char* DefaultProfileJson() {
       { "label": "Back", "action": { "type": "back" } },
       { "label": "Quick load", "action": { "type": "key", "keys": "F9" } },
       { "label": "Keyboard", "action": { "type": "keyboard" } },
+      { "label": "Adjust positions", "action": { "type": "adjust" } },
       { "label": "Reload profile", "action": { "type": "reload" } }
     ] },
     "left": { "title": "Left hand", "items": [
@@ -408,6 +437,7 @@ const char* DefaultProfileJson() {
         { "label": "Quick save", "action": { "type": "key", "keys": "F5" } },
         { "label": "Quick load", "action": { "type": "key", "keys": "F9" } },
         { "label": "Screenshot", "action": { "type": "key", "keys": "F12" } },
+        { "label": "Adjust positions", "action": { "type": "adjust" } },
         { "label": "Reload profile", "action": { "type": "reload" } },
         { "label": "Hide", "action": { "type": "close" } }
       ] }

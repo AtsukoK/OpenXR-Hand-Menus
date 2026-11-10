@@ -64,6 +64,7 @@ struct WristView {
     XrPosef cursorPose{ {0,0,0,1}, {0,0,0} };
     float cursorSize = 0.02f;
     int cursorLevel = 0;    // 0 far .. 7 almost touching, 8 touching/pushed in
+    bool adjust = false;    // adjust mode: the header says so
 };
 struct Cell { float x, y, w, h; }; // 0..1, y down
 // Header strip plus a grid; the same numbers are used for drawing and hit tests.
@@ -80,6 +81,9 @@ public:
     std::string toast; uint64_t toastVersion = 0; double toastUntil = 0;
     std::vector<HapticReq> haptics;
     bool reloadRequested = false;
+    // Adjust mode: grab wrist panels / an open wheel with the grip to move them, stick to resize.
+    bool adjust = false;
+    bool saveRequested = false;     // leaving adjust mode: the layer writes the placement to the profile
 
     void SetProfile(std::shared_ptr<Profile> p);
     void Reset();
@@ -115,7 +119,10 @@ private:
     std::map<int, std::pair<std::pair<int, int>, Override>> xrHolds; // binding -> override
     std::vector<Pulse> pulses;
     WheelRun wr;
-    double now = 0;
+    double now = 0, lastNow = 0;
+    struct GrabRun { int target = -1; int hand = -1; Vec3 off; }; // target: 0/1 wrist panel, 2 wheel
+    GrabRun grab;
+    void UpdateAdjustWheel();
 
     bool Down(const InputId& i) const { return cur[i.hand][i.comp][i.feat]; }
     bool Pressed(const InputId& i) const { return cur[i.hand][i.comp][i.feat] && !prev[i.hand][i.comp][i.feat]; }

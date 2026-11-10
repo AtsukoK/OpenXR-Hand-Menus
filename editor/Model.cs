@@ -33,7 +33,7 @@ public class InputConv : ChoiceConverter { protected override IEnumerable<string
 public class GestureConv : ChoiceConverter { protected override bool Exclusive => true; protected override IEnumerable<string> Values(ITypeDescriptorContext c) => new[] { "press", "tap", "hold", "double_tap", "while_held" }; }
 public class BlockConv : ChoiceConverter { protected override bool Exclusive => true; protected override IEnumerable<string> Values(ITypeDescriptorContext c) => new[] { "none", "trigger", "all" }; }
 public class BlockOpenConv : ChoiceConverter { protected override bool Exclusive => true; protected override IEnumerable<string> Values(ITypeDescriptorContext c) => new[] { "none", "minimal", "hand", "all" }; }
-public class TypeConv : ChoiceConverter { protected override bool Exclusive => true; protected override IEnumerable<string> Values(ITypeDescriptorContext c) => new[] { "none", "key", "sequence", "xr_input", "wheel", "back", "close", "layer", "reload", "keyboard", "page" }; }
+public class TypeConv : ChoiceConverter { protected override bool Exclusive => true; protected override IEnumerable<string> Values(ITypeDescriptorContext c) => new[] { "none", "key", "sequence", "xr_input", "wheel", "back", "close", "layer", "reload", "keyboard", "page", "adjust" }; }
 public class ModeConv : ChoiceConverter { protected override IEnumerable<string> Values(ITypeDescriptorContext c) => new[] { "tap", "hold", "toggle", "on", "off" }; }
 public class ConfirmConv : ChoiceConverter { protected override bool Exclusive => true; protected override IEnumerable<string> Values(ITypeDescriptorContext c) => new[] { "auto", "release", "stick_return", "button" }; }
 public class AnchorConv : ChoiceConverter { protected override bool Exclusive => true; protected override IEnumerable<string> Values(ITypeDescriptorContext c) => new[] { "hand", "hand_locked", "head", "head_locked" }; }
@@ -169,6 +169,7 @@ public class WristModel
     [JsonPropertyName("toward_elbow_m")] public float TowardElbow { get; set; } = 0.13f;
     [JsonPropertyName("text_up")] public string TextUp { get; set; } = "fingers";
     [JsonPropertyName("lift_m")] public float Lift { get; set; } = 0.025f;
+    [Browsable(false)][JsonPropertyName("side_m")] public float Side { get; set; }
     [JsonPropertyName("columns")] public int Columns { get; set; } = 3;
     [JsonPropertyName("facing_deg")] public float FacingDeg { get; set; } = 35f;
     [JsonPropertyName("gaze_deg")] public float GazeDeg { get; set; } = 20f;

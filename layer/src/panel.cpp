@@ -402,7 +402,7 @@ void DrawWrist(std::vector<uint32_t>& out, int S, const Profile& p, const WristS
     SolidBrush textB{ Color(st.text) }, accentB{ Color(st.accent) }, darkB{ Color(0xFF101418) };
     auto headFont = MakeFont(st, S * 0.055f * st.fontScale, FontStyleBold);
     RectF hr(hd.x * S, hd.y * S, hd.w * S, hd.h * S);
-    g.DrawString(Utf8ToW(v.wheel->title).c_str(), -1, headFont.get(), hr, &fmt, &accentB);
+    g.DrawString(Utf8ToW(v.adjust ? std::string("Adjust: grip to move") : v.wheel->title).c_str(), -1, headFont.get(), hr, &fmt, &accentB);
 
     float cellPx = cells.empty() ? 0 : cells[0].h * S;
     auto font = MakeFont(st, std::max(10.f, cellPx * 0.17f) * st.fontScale, FontStyleBold);

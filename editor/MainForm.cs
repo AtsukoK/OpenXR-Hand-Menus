@@ -682,6 +682,7 @@ public partial class MainForm : Form
             EnsureWristPages();
             currentFile = path;
             dirty = false;
+            NoteFileTime();
             Text = "OpenXR Hand Menus - Profile Editor - " + Path.GetFileName(path);
             BuildTree();
             var err = Native.Validate(File.ReadAllText(path));
@@ -812,6 +813,7 @@ public partial class MainForm : Form
         if (err != null && MessageBox.Show(this, "The layer would reject this profile:\n\n" + err + "\n\nSave anyway? (the game keeps the last good version until fixed)", "Problem", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
             return false;
         File.WriteAllText(currentFile, json);
+        NoteFileTime();
         dirty = false;
         Text = "OpenXR Hand Menus - Profile Editor - " + Path.GetFileName(currentFile);
         SetStatus(err == null ? "Saved. A running game reloads it within a second." : "Saved with errors: " + err, err != null);

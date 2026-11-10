@@ -253,6 +253,12 @@ static void ReadInputsAndUpdate() {
     }
     gEng.haptics.clear();
     if (gEng.reloadRequested) { gEng.reloadRequested = false; ReloadProfile(true); }
+    if (gEng.saveRequested && gEng.prof) { // leaving adjust mode: keep the new placement
+        gEng.saveRequested = false;
+        std::string err;
+        if (SavePlacement(*gEng.prof, err)) Log("adjust: placement saved to %s", gEng.prof->sourceName.c_str());
+        else { Log("adjust: save failed: %s", err.c_str()); gEng.Toast("Could not save positions: " + err, 6.0); }
+    }
 }
 
 // ---------------------------------------------------------------- hooks

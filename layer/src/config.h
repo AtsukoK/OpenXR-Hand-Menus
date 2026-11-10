@@ -17,7 +17,7 @@ bool ParseInput(const std::string& s, InputId& out);
 std::string InputName(const InputId& i);
 int ParseCompName(const std::string& s); // "trigger", "primary", ... -> Comp or -1
 
-enum class ActType { None, Key, Sequence, XrInput, Wheel, Back, Close, Layer, Reload, Keyboard, Page };
+enum class ActType { None, Key, Sequence, XrInput, Wheel, Back, Close, Layer, Reload, Keyboard, Page, Adjust };
 
 struct Action {
     ActType type = ActType::None;
@@ -94,6 +94,7 @@ struct WristStyle {
                                     // between = halfway (45 degrees) between fingers and along_arm (arm half raised)
                                     // along_arm = text runs along the forearm (arm held across the body)
     float lift = 0.025f;            // off the skin
+    float side = 0.f;               // sideways across the forearm (set by adjust mode)
     int columns = 3;
     float facingDeg = 35.f;         // how squarely the panel must face the eyes
     float gazeDeg = 20.f;           // how close to the centre of view it must be
@@ -122,4 +123,6 @@ struct Profile {
 // Loads <exe>.json from the profiles folder, else default.json (written with a sample if missing).
 std::shared_ptr<Profile> LoadProfile(std::wstring& pathOut, std::string& err);
 const char* DefaultProfileJson();
+// Adjust mode: write the wheel and wrist panel placement of p back into its profile file.
+bool SavePlacement(const Profile& p, std::string& err);
 std::shared_ptr<Profile> ParseProfileText(const std::string& text, std::string& err);
