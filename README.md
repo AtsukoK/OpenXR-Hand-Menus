@@ -1,6 +1,24 @@
 # OpenXR Hand Menus
 
-An OpenXR API layer that adds a radial menu, button chords and button layers to any OpenXR game. It works under Virtual Desktop's VDXR, SteamVR OpenXR, Meta Link and others. It loads into the game the same way OpenXR Toolkit or the foveated DLSS layer does, so nothing in VDXR is patched.
+Radial wheels, wrist panels, button combos and a VR keyboard for any OpenXR game. It's an OpenXR API layer, so it works under Virtual Desktop (VDXR), SteamVR OpenXR, Meta Link, Pimax and other runtimes without patching the game or the runtime, the same way OpenXR Toolkit loads. A desktop editor sets everything up, with per-game profiles.
+
+**[Download the latest release](https://github.com/AtsukoK/OpenXR-Hand-Menus/releases/latest)**
+
+## Screenshots
+
+**Wrist panel:** turn your wrist toward you and look at it. Poke a button with your other hand (a ring shows where you'll touch), or point at it and pull the trigger.
+
+![Wrist panel on the left forearm, with buttons for keyboard, pause, party screen and toggles](docs/images/wrist-panel.jpg)
+
+**Radial wheel:** opens in front of you. Pick an item with the stick or by pointing. Items can open sub-wheels.
+
+![Radial wheel sub-menu with Back, Quick load, Keyboard, Adjust positions and Reload profile](docs/images/radial-wheel.jpg)
+
+**Adjust mode:** move and resize the wheel and wrist panels by hand in the headset: grab with the grip, and use the stick to resize or turn.
+
+![Adjust mode: the main wheel and a wrist panel shown together, with "Adjust: grip to move" on the panel](docs/images/adjust-mode.jpg)
+
+<sub>Screenshots from Mount & Blade II: Bannerlord in VR.</sub>
 
 ## Install
 
