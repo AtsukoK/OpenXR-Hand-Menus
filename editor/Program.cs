@@ -1,4 +1,4 @@
-namespace VRRadialOverlayEditor;
+namespace VRHandMenusEditor;
 
 static class Program
 {

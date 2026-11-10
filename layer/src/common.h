@@ -19,7 +19,7 @@ void Log(const char* fmt, ...);
 void LogInit();
 std::wstring Utf8ToW(const std::string& s);
 std::string WToUtf8(const std::wstring& s);
-std::wstring DataDir();      // %LOCALAPPDATA%\VRRadialOverlay
+std::wstring DataDir();      // %LOCALAPPDATA%\VRHandMenus
 std::wstring ProfilesDir();  // ...\profiles
 std::string ExeName();       // lower-case exe name without extension
 double NowSec();

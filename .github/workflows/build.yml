@@ -18,7 +18,7 @@ jobs:
       - name: Build layer DLL
         run: |
           cmake -S layer -B layer/build -A x64
-          cmake --build layer/build --config Release --target VRRadialOverlay
+          cmake --build layer/build --config Release --target VRHandMenus
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -26,18 +26,18 @@ jobs:
 
       - name: Build editor (self-contained single file)
         run: >
-          dotnet publish editor/VRRadialOverlayEditor.csproj -c Release -r win-x64
+          dotnet publish editor/VRHandMenusEditor.csproj -c Release -r win-x64
           --self-contained -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
           -p:EnableCompressionInSingleFile=true -p:DebugType=none -o editor/bin/publish
 
       - name: Assemble release folder
         shell: pwsh
         run: |
-          $out = "release/VRRadialOverlay"
+          $out = "release/VRHandMenus"
           New-Item -ItemType Directory -Force $out | Out-Null
-          Copy-Item layer/build/Release/VRRadialOverlay.dll $out
+          Copy-Item layer/build/Release/VRHandMenus.dll $out
           Copy-Item package/* $out
-          Copy-Item editor/bin/publish/VRRadialOverlayEditor.exe $out
+          Copy-Item editor/bin/publish/VRHandMenusEditor.exe $out
           Copy-Item docs/README.txt $out
           Copy-Item LICENSE $out/LICENSE.txt
 
@@ -45,5 +45,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: VRRadialOverlay
-          path: release/VRRadialOverlay
+          name: VRHandMenus
+          path: release/VRHandMenus

@@ -1,16 +1,16 @@
-# VR Radial Overlay
+# VR Hand Menus
 
 An OpenXR API layer that adds a radial menu, button chords and button layers to any OpenXR game. It works under Virtual Desktop's VDXR, SteamVR OpenXR, Meta Link and others. It loads into the game the same way OpenXR Toolkit or the foveated DLSS layer does, so nothing in VDXR is patched.
 
 ## Install
 
-1. Run `dist\VRRadialOverlayEditor.exe` and click **Install layer**. This needs admin, because OpenXR layers are registered under HKLM.
-2. Start any OpenXR game. A toast at the bottom of your view, "Radial overlay: default.json loaded", means the layer is running.
+1. Run `dist\VRHandMenusEditor.exe` and click **Install layer**. This needs admin, because OpenXR layers are registered under HKLM.
+2. Start any OpenXR game. A toast at the bottom of your view, "Hand menus: default.json loaded", means the layer is running.
 3. Edit profiles in the editor and save. A running game reloads them within a second.
 
-Turn it off for one game with `enabled: false` in that game's profile. Remove it entirely with **Uninstall layer**. Setting the environment variable `DISABLE_XR_APILAYER_NOVENDOR_vr_radial_overlay=1` also disables it.
+Turn it off for one game with `enabled: false` in that game's profile. Remove it entirely with **Uninstall layer**. Setting the environment variable `DISABLE_XR_APILAYER_NOVENDOR_vr_hand_menus=1` also disables it.
 
-Files live in `%LOCALAPPDATA%\VRRadialOverlay\`:
+Files live in `%LOCALAPPDATA%\VRHandMenus\`:
 - `profiles\default.json` is used by every game that has no profile of its own.
 - `profiles\<exe name>.json` is a per-game profile (for example `profiles\bannerlord.json`).
 - `profiles\icons\*.png` holds optional item icons.
@@ -70,7 +70,7 @@ Files live in `%LOCALAPPDATA%\VRRadialOverlay\`:
 Needs Visual Studio Build Tools (C++ with CMake) and the .NET 10 SDK.
 
 - Layer: `cmake -S layer -B layer/build -A x64` then `cmake --build layer/build --config Release`
-- Editor: `dotnet publish editor/VRRadialOverlayEditor.csproj -c Release -o editor/bin/publish`
+- Editor: `dotnet publish editor/VRHandMenusEditor.csproj -c Release -o editor/bin/publish`
 - `build_all.ps1` does both and fills `dist\` (it uses the author's local tool paths in `layer\build.bat`).
 
 The GitHub Actions workflow builds the same tester package on every push.

@@ -1,5 +1,6 @@
 #include "common.h"
 #include <shlobj.h>
+#include <filesystem>
 #include <cstdio>
 #include <cstdarg>
 #include <algorithm>
@@ -26,7 +27,12 @@ std::wstring DataDir() {
     std::wstring d;
     if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &p))) d = p;
     CoTaskMemFree(p);
-    d += L"\\VRRadialOverlay";
+    std::wstring base = d;
+    d += L"\\VRHandMenus";
+    // First run after the rename: copy the settings from the old VRRadialOverlay folder.
+    std::error_code ec;
+    if (!std::filesystem::exists(d, ec) && std::filesystem::exists(base + L"\\VRRadialOverlay", ec))
+        std::filesystem::copy(base + L"\\VRRadialOverlay", d, std::filesystem::copy_options::recursive, ec);
     CreateDirectoryW(d.c_str(), nullptr);
     return d;
 }

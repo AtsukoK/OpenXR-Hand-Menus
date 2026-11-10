@@ -5,13 +5,13 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.Win32;
 
-namespace VRRadialOverlayEditor;
+namespace VRHandMenusEditor;
 
 static class Native
 {
-    [DllImport("VRRadialOverlay.dll", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("VRHandMenus.dll", CallingConvention = CallingConvention.Cdecl)]
     static extern int vro_validate([MarshalAs(UnmanagedType.LPUTF8Str)] string text, byte[] err, int errLen);
-    [DllImport("VRRadialOverlay.dll", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("VRHandMenus.dll", CallingConvention = CallingConvention.Cdecl)]
     static extern IntPtr vro_default_profile();
 
     public static string Validate(string json)
@@ -22,9 +22,9 @@ static class Native
             if (vro_validate(json, buf, buf.Length) != 0) return null;
             return Encoding.UTF8.GetString(buf, 0, Array.IndexOf(buf, (byte)0) is int n && n >= 0 ? n : buf.Length);
         }
-        catch (Exception e) { return "(could not load VRRadialOverlay.dll to check: " + e.Message + ")"; }
+        catch (Exception e) { return "(could not load VRHandMenus.dll to check: " + e.Message + ")"; }
     }
-    [DllImport("VRRadialOverlay.dll", CallingConvention = CallingConvention.Cdecl)]
+    [DllImport("VRHandMenus.dll", CallingConvention = CallingConvention.Cdecl)]
     static extern int vro_check_keys([MarshalAs(UnmanagedType.LPUTF8Str)] string text, int seq, byte[] err, int errLen);
 
     /// <summary>null = fine (or cannot check), otherwise the layer's reason.</summary>
@@ -51,10 +51,30 @@ public partial class MainForm : Form
     public static MainForm Current;
     public ProfileModel Profile;
 
-    const string LayerJson = "XR_APILAYER_NOVENDOR_vr_radial_overlay.json";
+    const string LayerJson = "XR_APILAYER_NOVENDOR_vr_hand_menus.json";
     const string ImplicitKey = @"SOFTWARE\Khronos\OpenXR\1\ApiLayers\Implicit";
-    static readonly string DataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VRRadialOverlay");
+    static readonly string DataDir = MigrateDataDir();
+    // First run after the rename from VR Radial Overlay: copy the old settings folder across.
+    static string MigrateDataDir()
+    {
+        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var dir = Path.Combine(local, "VRHandMenus");
+        var old = Path.Combine(local, "VRRadialOverlay");
+        try
+        {
+            if (!Directory.Exists(dir) && Directory.Exists(old))
+                foreach (var f in Directory.GetFiles(old, "*", SearchOption.AllDirectories))
+                {
+                    var t = Path.Combine(dir, Path.GetRelativePath(old, f));
+                    Directory.CreateDirectory(Path.GetDirectoryName(t));
+                    File.Copy(f, t, false);
+                }
+        }
+        catch { }
+        return dir;
+    }
     static readonly string ProfilesDir = Path.Combine(DataDir, "profiles");
+    internal static string ProfilesPath => ProfilesDir;
 
     readonly ToolStripComboBox profileBox = new() { DropDownStyle = ComboBoxStyle.DropDownList, Width = 220 };
     readonly ToolStripLabel layerStatus = new();
@@ -150,7 +170,7 @@ public partial class MainForm : Form
     public MainForm()
     {
         Current = this;
-        Text = "VR Radial Overlay - Profile Editor";
+        Text = "VR Hand Menus - Profile Editor";
         Size = new Size(1150, 760);
         Font = new Font("Segoe UI", 10.5f);
         Directory.CreateDirectory(ProfilesDir);
@@ -612,7 +632,7 @@ public partial class MainForm : Form
     static Button PBtn(string t, Action a) { var b = new Button { Text = t, AutoSize = true }; b.Click += (s, e) => a(); return b; }
 
     void SetStatus(string s, bool error = false) { statusText.Text = s; statusText.ForeColor = error ? Color.Firebrick : SystemColors.ControlText; }
-    void MarkDirty() { dirty = true; Text = "VR Radial Overlay - Profile Editor - " + Path.GetFileName(currentFile) + " *"; }
+    void MarkDirty() { dirty = true; Text = "VR Hand Menus - Profile Editor - " + Path.GetFileName(currentFile) + " *"; }
 
     bool ConfirmDiscard()
     {
@@ -661,7 +681,7 @@ public partial class MainForm : Form
             EnsureWristPages();
             currentFile = path;
             dirty = false;
-            Text = "VR Radial Overlay - Profile Editor - " + Path.GetFileName(path);
+            Text = "VR Hand Menus - Profile Editor - " + Path.GetFileName(path);
             BuildTree();
             var err = Native.Validate(File.ReadAllText(path));
             SetStatus(err == null ? "Loaded " + path : "Loaded, but the layer reports: " + err, err != null);
@@ -780,7 +800,7 @@ public partial class MainForm : Form
             return false;
         File.WriteAllText(currentFile, json);
         dirty = false;
-        Text = "VR Radial Overlay - Profile Editor - " + Path.GetFileName(currentFile);
+        Text = "VR Hand Menus - Profile Editor - " + Path.GetFileName(currentFile);
         SetStatus(err == null ? "Saved. A running game reloads it within a second." : "Saved with errors: " + err, err != null);
         BuildTree();
         return true;
@@ -1106,7 +1126,7 @@ class NewProfileDialog : Form
         browse.Click += (s, e) => { using var d = new OpenFileDialog { Filter = "Programs|*.exe" }; if (d.ShowDialog(this) == DialogResult.OK) exe.Text = Path.GetFileNameWithoutExtension(d.FileName); };
         t.Controls.Add(browse, 2, 0);
         t.Controls.Add(new Label { Text = "Start from:", AutoSize = true, Anchor = AnchorStyles.Left }, 0, 1);
-        foreach (var f in Directory.GetFiles(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "VRRadialOverlay", "profiles"), "*.json"))
+        foreach (var f in Directory.GetFiles(MainForm.ProfilesPath, "*.json"))
             copy.Items.Add(Path.GetFileName(f));
         copy.SelectedItem = "default.json";
         t.Controls.Add(copy, 1, 1);

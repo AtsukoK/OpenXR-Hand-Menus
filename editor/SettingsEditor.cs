@@ -1,4 +1,4 @@
-namespace VRRadialOverlayEditor;
+namespace VRHandMenusEditor;
 
 public class SettingsEditor : EditorBase
 {

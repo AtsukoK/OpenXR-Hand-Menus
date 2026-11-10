@@ -1,0 +1,11 @@
+{
+    "file_format_version": "1.0.0",
+    "api_layer": {
+        "name": "XR_APILAYER_NOVENDOR_vr_hand_menus",
+        "library_path": "./VRHandMenus.dll",
+        "api_version": "1.0",
+        "implementation_version": "1",
+        "description": "VR Hand Menus: radial wheels, wrist panels, button chords and a VR keyboard for any OpenXR game",
+        "disable_environment": "DISABLE_XR_APILAYER_NOVENDOR_vr_hand_menus"
+    }
+}
