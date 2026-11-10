@@ -1,4 +1,4 @@
-OpenXR Hand Menus v0.1.0 (test build)
+OpenXR Hand Menus v0.2.0 (test build)
 
 Adds radial menus (wheels), wrist panels, button combos and a VR keyboard to any OpenXR game.
 Works with Virtual Desktop (VDXR), SteamVR OpenXR, Meta Link and other OpenXR runtimes.
@@ -24,12 +24,16 @@ DEFAULT CONTROLS
     Quest / Rift / Pico: double-tap that hand's thumbrest
     Index / Pimax / Bigscreen: double-click that hand's thumbstick
     WMR / HP Reverb / Vive: hold that hand's menu button
-  Push the stick toward an item and let it spring back to pick it (WMR/Vive: let go of menu).
-  The "Controllers" button at the top of the editor changes this later.
+  The wheel appears in front of you. Pick an item by pushing the stick toward it and letting
+  it spring back, or by pointing at it and pulling the trigger (WMR/Vive: let go of menu).
+  The "Controllers" button at the top of the editor changes the opening buttons later.
 - Wrist panels: turn your wrist toward your face and look at it. Poke a button with your
   other hand's controller (a ring shows where it will touch), or point at it and pull
   the trigger.
 - The VR keyboard is on the wheels and the left wrist panel.
+- Move things to where you like them: right wheel > More... > Adjust positions. Grab the
+  wheel or a wrist panel with your other hand's grip and move it; while holding, the stick
+  resizes it (up/down) or turns a wrist panel (left/right). Adjust positions again saves.
 
 Change anything in the editor and save (Ctrl+S). A running game picks it up within a second.
 
