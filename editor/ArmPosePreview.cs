@@ -117,9 +117,10 @@ public class ArmPosePreview : Control
                 colors = on.Select(i => i.Color).ToList();
             }
         }
-        var pr = new RectangleF(-S / 2, -S / 2, S, S);
         var cells = WheelPreview.GridLayout(labels.Count, columns, out var hd);
         float bottom = hd.Bottom; foreach (var c in cells) bottom = Math.Max(bottom, c.Bottom);
+        // Centred on the wrist point by its real height (a short page is not square).
+        var pr = new RectangleF(-S / 2, -(bottom + 0.03f) * S / 2, S, S);
         using (var bg = new SolidBrush(Color.FromArgb(235, 16, 20, 24)))
         using (var p = Round(new RectangleF(pr.X, pr.Y, S, (bottom + 0.03f) * S), S * 0.08f))
         using (var edge = new Pen(Color.FromArgb(200, 255, 255, 255), 1.2f))
