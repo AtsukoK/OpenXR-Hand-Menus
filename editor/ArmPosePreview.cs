@@ -44,19 +44,31 @@ public class ArmPosePreview : Control
         if (RightArm) armAngle = -180 - armAngle;
         float textTurn = -armAngle; // every pose is meant to read upright from where you look
 
+        // Fit the hand and the panel into the view at any angle, centred on them; the sleeve just runs
+        // off the edge. (A fixed elbow point pushed custom angles out of the frame.)
         float W = Width, H = Height - 40;
-        float scale = m == "fingers" ? 1.15f : m == "along_arm" ? 1.45f : 1.3f;
+        float S = sizeM * K, px = GripX - elbowM * K;
+        var pts = new List<PointF> { new(180, -18), new(180, 18), new(108, -26), new(108, 26), new(px - S / 2 - 15, -16), new(px - S / 2 - 15, 16) };
+        using (var pm = new Matrix())
+        {
+            pm.Translate(px, 0); pm.Rotate(textTurn);
+            var corners = new[] { new PointF(-S / 2, -S / 2), new PointF(S / 2, -S / 2), new PointF(S / 2, S * 0.6f), new PointF(-S / 2, S * 0.6f) };
+            pm.TransformPoints(corners); pts.AddRange(corners);
+        }
+        var fit = pts.ToArray();
+        using (var am = new Matrix()) { am.Rotate(armAngle); am.TransformPoints(fit); }
+        float minX = fit.Min(p => p.X), maxX = fit.Max(p => p.X), minY = fit.Min(p => p.Y), maxY = fit.Max(p => p.Y);
+        float scale = Math.Min(1.8f, Math.Min((W - 20) / (maxX - minX), (H - 12) / (maxY - minY)));
         var state = g.Save();
-        float elbowX = m == "fingers" ? W / 2 : m == "along_arm" ? (RightArm ? W - 30 : 30) : (RightArm ? W - 60 : 60);
-        float elbowY = m == "along_arm" ? H * 0.5f : H + 4;
-        g.TranslateTransform(elbowX, elbowY);
+        g.TranslateTransform(W / 2, H / 2);
         g.ScaleTransform(scale, scale);
+        g.TranslateTransform(-(minX + maxX) / 2, -(minY + maxY) / 2);
         g.RotateTransform(armAngle);
 
         using var skin = new SolidBrush(Color.FromArgb(255, 205, 170, 140));
         using var sleeve = new SolidBrush(Color.FromArgb(255, 90, 96, 110));
         using var outline = new Pen(Color.FromArgb(255, 30, 30, 34), 1.5f);
-        using (var arm = Capsule(-30, -15, 145, 30)) { g.FillPath(sleeve, arm); g.DrawPath(outline, arm); }
+        using (var arm = Capsule(-400, -15, 515, 30)) { g.FillPath(sleeve, arm); g.DrawPath(outline, arm); }
         using (var palm = Capsule(108, -17, 46, 34)) { g.FillPath(skin, palm); g.DrawPath(outline, palm); }
         for (int i = 0; i < 4; i++)
         {
