@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.1 (2026-11-11)
+
+### New
+- **Update check.** On start the editor checks GitHub for a newer release and shows an orange "Update available" button that opens the releases page. Turn it off in Settings > General > Updates.
+
+### Changed
+- The editor's wrist preview now fits the hand and panel at any angle and centres the panel by its real height.
+- The default right wrist panel now mirrors the left one.
+
 ## v0.2.0 (2026-11-10)
 
 ### New

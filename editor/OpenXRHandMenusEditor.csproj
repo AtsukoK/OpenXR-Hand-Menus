@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>OpenXRHandMenusEditor</AssemblyName>
     <!-- Bump with every release: the update check compares this with the latest GitHub release tag. -->
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <RootNamespace>OpenXRHandMenusEditor</RootNamespace>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
